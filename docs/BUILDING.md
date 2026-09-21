@@ -62,11 +62,11 @@ The workflow explicitly exports `/opt/devkitpro/devkitARM/bin` through
 `GITHUB_PATH` and verifies `arm-none-eabi-g++` before running the same strict
 toolchain check used by local builds.
 The dependency is checked out by `actions/checkout` directly under the workspace
-at `external/butano`. Inside the container, CI derives `BUTANO` from the runtime
-`GITHUB_WORKSPACE` variable and publishes it through `GITHUB_ENV`, then verifies
-its Git tag and `butano.mak` before compilation. It deliberately does not use the
-`${{ github.workspace }}` expression for this path: that expression is evaluated
-to the host workspace, while container steps use the mounted `/__w/...` path.
+at `external/butano`. After checkout, the verification step logs the incoming
+`BUTANO`, `GITHUB_WORKSPACE`, physical working directory, and resolved dependency
+path. It canonicalizes the existing `${GITHUB_WORKSPACE}/external/butano` with
+`realpath`, exports that exact container path through `GITHUB_ENV`, and only then
+performs the location, Git tag, and `butano.mak` checks used by compilation.
 
 ## Emulator smoke test
 

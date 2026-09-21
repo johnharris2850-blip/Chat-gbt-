@@ -34,7 +34,6 @@ jobs:
         run: |
           test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
           echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
-          echo "BUTANO=${GITHUB_WORKSPACE}/external/butano" >> "${GITHUB_ENV}"
           "${DEVKITARM}/bin/arm-none-eabi-g++" --version
       - name: Check out pinned Butano
         uses: actions/checkout@v4
@@ -46,7 +45,14 @@ jobs:
       - name: Verify pinned Butano checkout
         shell: bash
         run: |
-          test "${BUTANO}" = "${GITHUB_WORKSPACE}/external/butano"
+          printf 'BUTANO before resolution: %s\n' "${BUTANO:-<unset>}"
+          printf 'GITHUB_WORKSPACE: %s\n' "${GITHUB_WORKSPACE}"
+          printf 'pwd: %s\n' "$(pwd -P)"
+          resolved_butano="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
+          printf 'resolved external/butano: %s\n' "${resolved_butano}"
+          export BUTANO="${resolved_butano}"
+          echo "BUTANO=${BUTANO}" >> "${GITHUB_ENV}"
+          test "${BUTANO}" = "$(realpath -e "${GITHUB_WORKSPACE}")/external/butano"
           test -d "${BUTANO}/.git"
           test -f "${BUTANO}/butano.mak"
           test "$(git -C "${BUTANO}" describe --tags --exact-match)" = "18.1.0"

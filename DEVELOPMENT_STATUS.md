@@ -168,6 +168,20 @@ workspace distinction:
 - The existing equality, repository, `butano.mak`, and exact-tag checks remain in
   place and now validate the same mounted path populated by `actions/checkout`.
 
+### Runtime Butano-path resolution
+
+Completed on 2026-09-21 after the next Actions log showed the exported value still
+did not compare byte-for-byte with the checkout path:
+
+- Removed the earlier pre-checkout `BUTANO` export.
+- The post-checkout verification now logs the incoming `BUTANO`, runtime
+  `GITHUB_WORKSPACE`, physical `pwd`, and canonical dependency path before testing.
+- It uses `realpath -e` to require and canonicalize the actual checked-out
+  `${GITHUB_WORKSPACE}/external/butano` directory, exports that exact value through
+  `GITHUB_ENV`, and compares it with the canonical workspace path.
+- Git metadata, `butano.mak`, exact tag, the unchanged toolchain validator, ROM
+  checksum, and artifact gates remain mandatory.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
