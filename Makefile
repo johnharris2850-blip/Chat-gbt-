@@ -9,7 +9,7 @@ BUTANO ?= external/butano/butano
 .PHONY: all assets verify clean
 
 all: assets
-	$(MAKE) -f make/Butano.mk BUTANO="$(BUTANO)" LIBBUTANO="$(BUTANO)"
+	$(MAKE) -f make/Butano.mk BUTANO="$(BUTANO)" LIBBUTANO="$(BUTANO)" LIBBUTANOABS="$(realpath $(BUTANO))"
 
 assets:
 	$(PYTHON) tools/generate_placeholder_assets.py

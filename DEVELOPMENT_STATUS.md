@@ -242,6 +242,22 @@ inside the recursive make despite the child makefile alias:
   and fails before including Butano unless both engine makefiles exist.
 - Repository checks now require the explicit recursive-make propagation.
 
+### Absolute Butano make-variable correction
+
+Completed on 2026-09-21 after real-CI diagnostics proved `BUTANO` and
+`LIBBUTANO` were populated while Butano line 5 still expanded its include to
+`/butano_dka.mak`:
+
+- The standard `LIBBUTANOABS` variable is now derived with GNU Make's `realpath`
+  and passed explicitly into the recursive invocation alongside `LIBBUTANO`.
+- The project fails immediately if the absolute path is empty or if
+  `${LIBBUTANOABS}/butano_dka.mak` is absent, and logs the exact expansion used by
+  Butano line 5.
+- Real CI now prints the first 15 lines of the pinned `butano.mak`, representative
+  official example Makefiles, and both canonical engine paths immediately before
+  building, so the checked-out 18.1.0 sources—not an assumed layout—are visible in
+  the authoritative build log.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

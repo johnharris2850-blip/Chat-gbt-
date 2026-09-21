@@ -23,17 +23,23 @@ BUTANO      ?= external/butano/butano
 # following Butano's project Makefile contract instead of relying on a
 # make-local alias to survive recursion.
 LIBBUTANO   ?= $(BUTANO)
+LIBBUTANOABS ?= $(realpath $(LIBBUTANO))
 
 $(info Crown & Chaos BUTANO=$(BUTANO))
 $(info Crown & Chaos LIBBUTANO=$(LIBBUTANO))
-$(info Crown & Chaos butano_dka=$(LIBBUTANO)/butano_dka.mak)
+$(info Crown & Chaos LIBBUTANOABS=$(LIBBUTANOABS))
+$(info Crown & Chaos butano_dka=$(LIBBUTANOABS)/butano_dka.mak)
+
+ifeq ($(strip $(LIBBUTANOABS)),)
+$(error Butano absolute SDK path could not be resolved from '$(LIBBUTANO)')
+endif
 
 ifeq ($(wildcard $(LIBBUTANO)/butano.mak),)
 $(error Butano not found at '$(LIBBUTANO)'. Run tools/bootstrap_butano.sh or set BUTANO=/absolute/path/to/butano)
 endif
 
-ifeq ($(wildcard $(LIBBUTANO)/butano_dka.mak),)
-$(error Butano devkitARM makefile not found at '$(LIBBUTANO)/butano_dka.mak')
+ifeq ($(wildcard $(LIBBUTANOABS)/butano_dka.mak),)
+$(error Butano devkitARM makefile not found at '$(LIBBUTANOABS)/butano_dka.mak')
 endif
 
 include $(LIBBUTANO)/butano.mak

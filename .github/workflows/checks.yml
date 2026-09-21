@@ -89,6 +89,15 @@ jobs:
         run: |
           command -v arm-none-eabi-g++
           tools/check_toolchain.sh
+          printf '%s\n' 'First 15 lines of Butano 18.1.0 butano.mak:'
+          sed -n '1,15p' "${BUTANO}/butano.mak"
+          printf '%s\n' 'Official Butano 18.1.0 example Makefile patterns:'
+          while IFS= read -r example_makefile; do
+            printf '\n--- %s ---\n' "${example_makefile}"
+            sed -n '1,45p' "${example_makefile}"
+          done < <(find "${BUTANO}/../examples" -mindepth 2 -maxdepth 2 -name Makefile -print | sort | sed -n '1,3p')
+          printf 'Expected LIBBUTANOABS: %s\n' "$(realpath -e "${BUTANO}")"
+          printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
           make -j2
       - name: Record ROM
         run: |
