@@ -48,14 +48,34 @@ jobs:
           printf 'BUTANO before resolution: %s\n' "${BUTANO:-<unset>}"
           printf 'GITHUB_WORKSPACE: %s\n' "${GITHUB_WORKSPACE}"
           printf 'pwd: %s\n' "$(pwd -P)"
-          resolved_butano="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
-          printf 'resolved external/butano: %s\n' "${resolved_butano}"
-          export BUTANO="${resolved_butano}"
+          expected_butano="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
+          printf 'resolved external/butano: %s\n' "${expected_butano}"
+
+          # Resolve the dependency inside the running devkitPro container.  Do
+          # not import a host-side actions expression, since the host and the
+          # job container can expose the workspace under different paths.
+          export BUTANO="${expected_butano}"
+          printf 'BUTANO after resolution: %s\n' "${BUTANO}"
           echo "BUTANO=${BUTANO}" >> "${GITHUB_ENV}"
-          test "${BUTANO}" = "$(realpath -e "${GITHUB_WORKSPACE}")/external/butano"
-          test -d "${BUTANO}/.git"
+
+          # The repository is created by actions/checkout on the runner and
+          # then consumed as root in the devkitPro container.  Register this
+          # one verified path so Git's ownership protection does not prevent
+          # the revision checks below.
+          git config --global --add safe.directory "${BUTANO}"
+
+          printf 'Verifying canonical dependency path...\n'
+          test "${BUTANO}" = "${expected_butano}"
+          printf 'Verifying Git checkout metadata...\n'
+          test -e "${BUTANO}/.git"
+          test "$(git -C "${BUTANO}" rev-parse --is-inside-work-tree)" = "true"
+          printf 'Verifying Butano build entry point...\n'
           test -f "${BUTANO}/butano.mak"
-          test "$(git -C "${BUTANO}" describe --tags --exact-match)" = "18.1.0"
+          printf 'Verifying pinned Butano tag...\n'
+          checked_out_commit="$(git -C "${BUTANO}" rev-parse HEAD)"
+          pinned_commit="$(git -C "${BUTANO}" rev-parse 'refs/tags/18.1.0^{commit}')"
+          printf 'Butano HEAD: %s\nButano 18.1.0: %s\n' "${checked_out_commit}" "${pinned_commit}"
+          test "${checked_out_commit}" = "${pinned_commit}"
           printf 'Butano checkout: %s\n' "${BUTANO}"
       - name: Build ROM
         shell: bash

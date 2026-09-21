@@ -66,7 +66,12 @@ at `external/butano`. After checkout, the verification step logs the incoming
 `BUTANO`, `GITHUB_WORKSPACE`, physical working directory, and resolved dependency
 path. It canonicalizes the existing `${GITHUB_WORKSPACE}/external/butano` with
 `realpath`, exports that exact container path through `GITHUB_ENV`, and only then
-performs the location, Git tag, and `butano.mak` checks used by compilation.
+performs the location, Git metadata, pinned-tag commit, and `butano.mak` checks
+used by compilation. Because `actions/checkout` creates the nested checkout on
+the runner before the devkitPro container consumes it, the workflow marks only
+this canonical dependency path as a Git safe directory. Version verification
+compares `HEAD` directly with the peeled `refs/tags/18.1.0` commit instead of
+depending on the display text returned by `git describe`.
 
 ## Emulator smoke test
 

@@ -182,6 +182,23 @@ did not compare byte-for-byte with the checkout path:
 - Git metadata, `butano.mak`, exact tag, the unchanged toolchain validator, ROM
   checksum, and artifact gates remain mandatory.
 
+### Pinned-checkout verification correction
+
+Completed on 2026-09-21 after the diagnostics proved the checkout path itself was
+correct:
+
+- `BUTANO` is assigned from the canonical runtime checkout path in the same shell
+  that verifies it, then persisted to later container steps through `GITHUB_ENV`.
+- The canonical nested checkout is registered as a Git safe directory before Git
+  reads it, accounting for the runner/container ownership boundary without
+  weakening path, repository, or version validation.
+- Each gate now has a log label, so a future failure identifies the exact check.
+- Version validation compares the checked-out `HEAD` commit to the peeled
+  `refs/tags/18.1.0` commit. This verifies the pinned revision without relying on
+  `git describe`'s human-readable tag spelling.
+- The required `.git` entry and `butano.mak` file are still checked explicitly;
+  the strict toolchain, ROM existence, checksum, and artifact gates are unchanged.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
