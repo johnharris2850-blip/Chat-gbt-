@@ -140,6 +140,20 @@ Completed on 2026-09-21 after the first `gba-build` attempt:
 - This fixes the reported `arm-none-eabi-g++ is not on PATH` failure without
   weakening or bypassing `tools/check_toolchain.sh`.
 
+### GitHub Actions Butano-checkout fix
+
+Completed on 2026-09-21 after the next `gba-build` attempt:
+
+- Replaced the working-directory-dependent `git clone external/butano` command
+  with a second `actions/checkout` invocation targeting the pinned Butano 18.1.0
+  tag and explicit `external/butano` workspace path.
+- Set `BUTANO` to `${{ github.workspace }}/external/butano` for the whole GBA job.
+- Added a pre-build gate that verifies the absolute location, Git checkout,
+  `butano.mak`, and exact `18.1.0` tag before the unchanged toolchain validator is
+  allowed to run.
+- The checksum and downloadable ROM artifact steps remain unchanged and will run
+  only after a real successful compilation.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

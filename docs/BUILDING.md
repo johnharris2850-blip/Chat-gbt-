@@ -61,6 +61,10 @@ test build, not a commercial-ROM patch and does not require any base ROM.
 The workflow explicitly exports `/opt/devkitpro/devkitARM/bin` through
 `GITHUB_PATH` and verifies `arm-none-eabi-g++` before running the same strict
 toolchain check used by local builds.
+The dependency is checked out by `actions/checkout` directly under the workspace
+at `external/butano`; CI sets `BUTANO` to that absolute directory and verifies its
+Git tag and `butano.mak` before compilation. This avoids container working-directory
+differences between Actions steps.
 
 ## Emulator smoke test
 

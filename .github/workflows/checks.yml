@@ -27,6 +27,7 @@ jobs:
     env:
       DEVKITPRO: /opt/devkitpro
       DEVKITARM: /opt/devkitpro/devkitARM
+      BUTANO: ${{ github.workspace }}/external/butano
     steps:
       - uses: actions/checkout@v4
       - name: Configure devkitARM toolchain
@@ -35,8 +36,21 @@ jobs:
           test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
           echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
           "${DEVKITARM}/bin/arm-none-eabi-g++" --version
-      - name: Fetch pinned Butano
-        run: git clone --branch 18.1.0 --depth 1 https://github.com/GValiente/butano.git external/butano
+      - name: Check out pinned Butano
+        uses: actions/checkout@v4
+        with:
+          repository: GValiente/butano
+          ref: "18.1.0"
+          path: external/butano
+          fetch-depth: 1
+      - name: Verify pinned Butano checkout
+        shell: bash
+        run: |
+          test "${BUTANO}" = "${GITHUB_WORKSPACE}/external/butano"
+          test -d "${BUTANO}/.git"
+          test -f "${BUTANO}/butano.mak"
+          test "$(git -C "${BUTANO}" describe --tags --exact-match)" = "18.1.0"
+          printf 'Butano checkout: %s\n' "${BUTANO}"
       - name: Build ROM
         shell: bash
         run: |
