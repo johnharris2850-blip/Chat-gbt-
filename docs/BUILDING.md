@@ -34,6 +34,7 @@ python3 tools/generate_placeholder_assets.py --check
 python3 tools/check_project.py
 tools/bootstrap_butano.sh
 tools/check_toolchain.sh
+make assets
 make -j2
 ```
 
@@ -46,22 +47,20 @@ make -j2 BUTANO=/absolute/path/to/butano-repository/butano
 
 The upstream repository contains the engine in its `butano/` subdirectory; the
 repository root itself is not the SDK include path and does not contain
-`butano.mak`. The root build passes this SDK path explicitly as both `BUTANO` and
-Butano's required `LIBBUTANO` variable to the recursive make invocation before
-including `$(LIBBUTANO)/butano.mak`; `LIBBUTANO` is used internally by Butano to
-derive `LIBBUTANOABS`, which line 5 uses to locate the adjacent `butano_dka.mak`.
-The root build passes that canonical absolute value explicitly as well. The build
-log prints all three variables and the resulting `butano_dka.mak` path before the
-include is evaluated.
+`butano.mak`. The standard root project configuration assigns this SDK path to
+Butano's required `LIBBUTANO` variable before including
+`$(LIBBUTANO)/butano.mak`; Butano then uses its canonical absolute form to locate
+the adjacent `butano_dka.mak`.
 
 The expected output is `crown_and_chaos.gba` in the repository root. Build output
-and ROMs are ignored by Git. The root wrapper passes Butano's extension-free
-`OUTPUT` variable as the absolute repository-root path
-`$(CURDIR)/crown_and_chaos`, preventing the nested makefile location from moving
-the ROM into another directory. Run `make clean` before a reproducibility build.
-`make` always runs the deterministic generator before entering Butano, creating
-the ignored `graphics/*.png` and `audio/*.wav` inputs from the tracked Python and
-JSON sources. These generated binaries must never be committed. `make clean`
+and ROMs are ignored by Git. The root `Makefile` follows Butano's standard project
+layout because Butano reinvokes that same absolute Makefile from the `build/`
+directory while compiling and linking. Generate assets before invoking the
+default build. Run `make clean` before a reproducibility build.
+`make assets` runs the deterministic generator before the default Butano build,
+creating the ignored `graphics/*.png` and `audio/*.wav` inputs from the tracked
+Python and JSON sources. CI performs these two steps explicitly. These generated
+binaries must never be committed. `make clean`
 removes them along with the ROM and object output; `make verify` runs all host
 checks without requiring generated binaries to be present.
 

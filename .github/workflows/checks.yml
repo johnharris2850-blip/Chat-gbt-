@@ -91,13 +91,9 @@ jobs:
           tools/check_toolchain.sh
           printf '%s\n' 'First 15 lines of Butano 18.1.0 butano.mak:'
           sed -n '1,15p' "${BUTANO}/butano.mak"
-          printf '%s\n' 'Official Butano 18.1.0 example Makefile patterns:'
-          while IFS= read -r example_makefile; do
-            printf '\n--- %s ---\n' "${example_makefile}"
-            sed -n '1,45p' "${example_makefile}"
-          done < <(find "${BUTANO}/../examples" -mindepth 2 -maxdepth 2 -name Makefile -print | sort | sed -n '1,3p')
           printf 'Expected LIBBUTANOABS: %s\n' "$(realpath -e "${BUTANO}")"
           printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
+          python3 tools/generate_placeholder_assets.py
           make -j2
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;

@@ -273,6 +273,24 @@ repository-root ROM gate found no file:
   `GITHUB_WORKSPACE` path for existence, checksum, and size checks.
 - Artifact upload continues to require `crown_and_chaos.gba` and its SHA-256 file.
 
+### Standard root Butano project correction
+
+Completed on 2026-09-21 after the real build reported `Nothing to be done for
+'build'` and produced no ROM:
+
+- Replaced the wrapper-to-nested-make arrangement with a standard root Butano
+  project Makefile. Butano can now reinvoke the same root file from `build/`, as
+  required by its outer/inner build stages, instead of accidentally re-entering a
+  wrapper that never compiled the project.
+- The actual Crown & Chaos `src`, `include`, `data`, `graphics`, `audio`, and
+  `dmg_audio` directories are configured directly in that root project file.
+- CI generates deterministic binary inputs immediately before invoking the
+  standard default Butano build; host-only `assets`, `verify`, and `clean` goals
+  remain available without loading the external SDK.
+- Removed the nonstandard nested `make/Butano.mk` and the forced `OUTPUT`
+  override. Butano now owns its supported build recursion and emits
+  `crown_and_chaos.gba` from `TARGET := crown_and_chaos`.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
