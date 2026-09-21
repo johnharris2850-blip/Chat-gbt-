@@ -291,6 +291,25 @@ Completed on 2026-09-21 after the real build reported `Nothing to be done for
   override. Butano now owns its supported build recursion and emits
   `crown_and_chaos.gba` from `TARGET := crown_and_chaos`.
 
+### Asset-directory hygiene correction
+
+Completed on 2026-09-21 after the real Butano audio conversion reached the
+project assets and rejected `audio/README.md` as an invalid asset name:
+
+- Removed documentation files from `audio/`, `graphics/`, `data/`, and
+  `dmg_audio/`; shared guidance now lives in `docs/ASSETS.md` outside every
+  directory scanned by Butano.
+- Added a repository check that rejects unsupported files and invalid Butano
+  asset names in all four configured input directories.
+- The CI ROM job now runs `make clean`, regenerates the deterministic PNG/WAV
+  inputs, and reruns repository checks immediately before the real build. This
+  prevents stale converter output from concealing an asset-input failure.
+- The pinned Butano 18.1.0 and devkitARM r65 contracts, nonempty root-ROM gate,
+  checksum/size recording, and artifact upload remain enabled.
+- Host validation passes. Production of `crown_and_chaos.gba` remains subject to
+  the devkitARM container build; this checkout does not contain that external
+  toolchain or the ignored Butano dependency.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

@@ -15,6 +15,26 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     errors: list[str] = []
 
+    # Butano enumerates every file in these configured input directories.  A
+    # README or editor artifact is not ignored: it is sent to an asset tool and
+    # can abort the ROM build before compilation.  Keep this allowlist aligned
+    # with the source formats intentionally used by Crown & Chaos.
+    asset_extensions = {
+        "audio": {".json", ".wav"},
+        "graphics": {".json", ".png"},
+        "data": {".json"},
+        "dmg_audio": {".mod", ".s3m", ".xm"},
+    }
+    valid_asset_name = re.compile(r"^[a-z0-9_]+$")
+    for directory, extensions in asset_extensions.items():
+        for path in (ROOT / directory).iterdir():
+            if not path.is_file():
+                errors.append(f"asset directory contains non-file entry: {path.relative_to(ROOT)}")
+            elif path.suffix.lower() not in extensions:
+                errors.append(f"non-asset file in {directory}: {path.name}")
+            elif not valid_asset_name.fullmatch(path.stem):
+                errors.append(f"invalid Butano asset name in {directory}: {path.name}")
+
     for path in ROOT.rglob("*"):
         if ".git" in path.parts or "external" in path.parts or not path.is_file():
             continue

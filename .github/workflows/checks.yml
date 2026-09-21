@@ -93,7 +93,11 @@ jobs:
           sed -n '1,15p' "${BUTANO}/butano.mak"
           printf 'Expected LIBBUTANOABS: %s\n' "$(realpath -e "${BUTANO}")"
           printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
+          # Always start from an empty build/output tree. Generated assets are
+          # recreated below, so stale converter output cannot mask a failure.
+          make clean
           python3 tools/generate_placeholder_assets.py
+          python3 tools/check_project.py
           make -j2
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
