@@ -4,11 +4,12 @@
 .DEFAULT_GOAL := all
 
 PYTHON ?= python3
+BUTANO ?= external/butano/butano
 
 .PHONY: all assets verify clean
 
 all: assets
-	$(MAKE) -f make/Butano.mk
+	$(MAKE) -f make/Butano.mk BUTANO="$(BUTANO)" LIBBUTANO="$(BUTANO)"
 
 assets:
 	$(PYTHON) tools/generate_placeholder_assets.py

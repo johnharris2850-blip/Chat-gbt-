@@ -19,13 +19,21 @@ USERFLAGS   := -Wall -Wextra -Wpedantic -Werror
 BUTANO      ?= external/butano/butano
 
 # Butano 18.1.0's public project makefile expects LIBBUTANO to name the SDK
-# directory.  BUTANO is retained as this project's user-facing override and CI
-# environment variable; assigning LIBBUTANO before the include lets
-# butano.mak locate its sibling butano_dka.mak and the rest of the toolchain.
-LIBBUTANO   := $(BUTANO)
+# directory. The root Makefile passes it explicitly to this recursive make,
+# following Butano's project Makefile contract instead of relying on a
+# make-local alias to survive recursion.
+LIBBUTANO   ?= $(BUTANO)
+
+$(info Crown & Chaos BUTANO=$(BUTANO))
+$(info Crown & Chaos LIBBUTANO=$(LIBBUTANO))
+$(info Crown & Chaos butano_dka=$(LIBBUTANO)/butano_dka.mak)
 
 ifeq ($(wildcard $(LIBBUTANO)/butano.mak),)
 $(error Butano not found at '$(LIBBUTANO)'. Run tools/bootstrap_butano.sh or set BUTANO=/absolute/path/to/butano)
+endif
+
+ifeq ($(wildcard $(LIBBUTANO)/butano_dka.mak),)
+$(error Butano devkitARM makefile not found at '$(LIBBUTANO)/butano_dka.mak')
 endif
 
 include $(LIBBUTANO)/butano.mak

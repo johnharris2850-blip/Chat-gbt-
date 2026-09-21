@@ -228,6 +228,20 @@ to include `/butano_dka.mak`:
 - Repository policy checks enforce the supported `LIBBUTANO` integration so the
   recursive build cannot silently regress to an empty SDK prefix.
 
+### Recursive-make propagation correction
+
+Completed on 2026-09-21 after the real build showed `LIBBUTANO` was still empty
+inside the recursive make despite the child makefile alias:
+
+- The root Makefile now defines the SDK default and passes both `BUTANO` and
+  `LIBBUTANO` explicitly on the recursive make command line, matching the standard
+  Butano project contract and giving `butano.mak` the variable in its own make
+  invocation.
+- The child project makefile retains a local fallback, prints `BUTANO`,
+  `LIBBUTANO`, and the resolved `butano_dka.mak` candidate for real-CI diagnosis,
+  and fails before including Butano unless both engine makefiles exist.
+- Repository checks now require the explicit recursive-make propagation.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
