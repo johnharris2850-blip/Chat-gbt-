@@ -1,0 +1,116 @@
+name: Project checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate source and generated assets
+        run: |
+          python3 tools/check_project.py
+          python3 tools/generate_placeholder_assets.py --check
+          tools/run_host_tests.sh
+
+  gba-build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:20241104
+    env:
+      DEVKITPRO: /opt/devkitpro
+      DEVKITARM: /opt/devkitpro/devkitARM
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure devkitARM toolchain
+        shell: bash
+        run: |
+          test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
+          echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
+          "${DEVKITARM}/bin/arm-none-eabi-g++" --version
+      - name: Check out pinned Butano
+        uses: actions/checkout@v4
+        with:
+          repository: GValiente/butano
+          ref: "18.1.0"
+          path: external/butano
+          fetch-depth: 1
+      - name: Verify pinned Butano checkout
+        shell: bash
+        run: |
+          printf 'BUTANO before resolution: %s\n' "${BUTANO:-<unset>}"
+          printf 'GITHUB_WORKSPACE: %s\n' "${GITHUB_WORKSPACE}"
+          printf 'pwd: %s\n' "$(pwd -P)"
+          butano_repository="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
+          expected_butano="$(realpath -e "${butano_repository}/butano")"
+          printf 'resolved Butano repository: %s\n' "${butano_repository}"
+          printf 'resolved Butano engine: %s\n' "${expected_butano}"
+          printf '%s\n' 'Butano checkout layout:'
+          ls -la "${butano_repository}"
+          printf '%s\n' 'Candidate build entry points:'
+          find "${butano_repository}" -maxdepth 3 \( -name butano.mak -o -name common.mk -o -name Makefile \) -print
+
+          # Resolve the dependency inside the running devkitPro container.  Do
+          # not import a host-side actions expression, since the host and the
+          # job container can expose the workspace under different paths.
+          export BUTANO="${expected_butano}"
+          printf 'BUTANO after resolution: %s\n' "${BUTANO}"
+          echo "BUTANO=${BUTANO}" >> "${GITHUB_ENV}"
+
+          # The repository is created by actions/checkout on the runner and
+          # then consumed as root in the devkitPro container.  Register this
+          # one verified path so Git's ownership protection does not prevent
+          # the revision checks below.
+          git config --global --add safe.directory "${butano_repository}"
+
+          printf 'Verifying canonical dependency path...\n'
+          test "${BUTANO}" = "${expected_butano}"
+          printf 'Verifying Git checkout metadata...\n'
+          test -e "${butano_repository}/.git"
+          test "$(git -C "${butano_repository}" rev-parse --is-inside-work-tree)" = "true"
+          printf 'Verifying Butano build entry point...\n'
+          test -f "${BUTANO}/butano.mak"
+          test -f "${BUTANO}/butano_dka.mak"
+          printf 'Verifying pinned Butano tag...\n'
+          checked_out_commit="$(git -C "${butano_repository}" rev-parse HEAD)"
+          pinned_commit="$(git -C "${butano_repository}" rev-parse 'refs/tags/18.1.0^{commit}')"
+          printf 'Butano HEAD: %s\nButano 18.1.0: %s\n' "${checked_out_commit}" "${pinned_commit}"
+          test "${checked_out_commit}" = "${pinned_commit}"
+          printf 'Butano checkout: %s\n' "${BUTANO}"
+      - name: Build ROM
+        shell: bash
+        run: |
+          command -v arm-none-eabi-g++
+          tools/check_toolchain.sh
+          printf '%s\n' 'First 15 lines of Butano 18.1.0 butano.mak:'
+          sed -n '1,15p' "${BUTANO}/butano.mak"
+          printf 'Expected LIBBUTANOABS: %s\n' "$(realpath -e "${BUTANO}")"
+          printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
+          # Always start from an empty build/output tree. Generated assets are
+          # recreated below, so stale converter output cannot mask a failure.
+          make clean
+          python3 tools/generate_placeholder_assets.py
+          python3 tools/check_project.py
+          make -j2
+          printf '%s\n' 'GBA files produced by the build:'
+          find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
+          test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
+      - name: Record ROM
+        run: |
+          test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
+          sha256sum "${GITHUB_WORKSPACE}/crown_and_chaos.gba" | tee "${GITHUB_WORKSPACE}/crown_and_chaos.gba.sha256"
+          stat -c '%n %s bytes' "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crown-and-chaos-gba-${{ github.sha }}
+          path: |
+            crown_and_chaos.gba
+            crown_and_chaos.gba.sha256
+          if-no-files-found: error
