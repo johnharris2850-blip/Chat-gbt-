@@ -1,0 +1,46 @@
+name: Project checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate source and generated assets
+        run: |
+          python3 tools/check_project.py
+          python3 tools/generate_placeholder_assets.py --check
+          tools/run_host_tests.sh
+
+  gba-build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:20241104
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned Butano
+        run: git clone --branch 18.1.0 --depth 1 https://github.com/GValiente/butano.git external/butano
+      - name: Build ROM
+        run: |
+          tools/check_toolchain.sh
+          make -j2
+      - name: Record ROM
+        run: |
+          test -s crown_and_chaos.gba
+          sha256sum crown_and_chaos.gba | tee crown_and_chaos.gba.sha256
+          stat -c '%n %s bytes' crown_and_chaos.gba
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crown-and-chaos-gba-${{ github.sha }}
+          path: |
+            crown_and_chaos.gba
+            crown_and_chaos.gba.sha256
+          if-no-files-found: error
