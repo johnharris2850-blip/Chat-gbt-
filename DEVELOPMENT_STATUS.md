@@ -215,6 +215,19 @@ verification but showed that the repository root has no `butano.mak`:
 - Local defaults, bootstrap guidance, and the strict toolchain checker now use the
   same repository-root versus engine-directory distinction as CI.
 
+### Butano make-variable correction
+
+Completed on 2026-09-21 after the real build entered `butano.mak` but attempted
+to include `/butano_dka.mak`:
+
+- The project now assigns the resolved SDK directory to Butano 18.1.0's required
+  `LIBBUTANO` make variable before including `$(LIBBUTANO)/butano.mak`.
+- This preserves `BUTANO` as the documented local/CI override while ensuring
+  Butano's own makefiles can resolve adjacent files such as `butano_dka.mak`.
+- CI now verifies both `butano.mak` and `butano_dka.mak` before compilation.
+- Repository policy checks enforce the supported `LIBBUTANO` integration so the
+  recursive build cannot silently regress to an empty SDK prefix.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

@@ -77,6 +77,7 @@ jobs:
           test "$(git -C "${butano_repository}" rev-parse --is-inside-work-tree)" = "true"
           printf 'Verifying Butano build entry point...\n'
           test -f "${BUTANO}/butano.mak"
+          test -f "${BUTANO}/butano_dka.mak"
           printf 'Verifying pinned Butano tag...\n'
           checked_out_commit="$(git -C "${butano_repository}" rev-parse HEAD)"
           pinned_commit="$(git -C "${butano_repository}" rev-parse 'refs/tags/18.1.0^{commit}')"

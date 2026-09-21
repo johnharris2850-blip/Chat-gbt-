@@ -46,7 +46,9 @@ make -j2 BUTANO=/absolute/path/to/butano-repository/butano
 
 The upstream repository contains the engine in its `butano/` subdirectory; the
 repository root itself is not the SDK include path and does not contain
-`butano.mak`.
+`butano.mak`. The project maps this SDK path to Butano's required `LIBBUTANO`
+make variable before including `$(LIBBUTANO)/butano.mak`; that variable is also
+used internally by Butano to locate the adjacent `butano_dka.mak`.
 
 The expected output is `crown_and_chaos.gba` in the repository root. Build output
 and ROMs are ignored by Git. Run `make clean` before a reproducibility build.

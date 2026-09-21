@@ -18,8 +18,14 @@ USERFLAGS   := -Wall -Wextra -Wpedantic -Werror
 
 BUTANO      ?= external/butano/butano
 
-ifeq ($(wildcard $(BUTANO)/butano.mak),)
-$(error Butano not found at '$(BUTANO)'. Run tools/bootstrap_butano.sh or set BUTANO=/absolute/path/to/butano)
+# Butano 18.1.0's public project makefile expects LIBBUTANO to name the SDK
+# directory.  BUTANO is retained as this project's user-facing override and CI
+# environment variable; assigning LIBBUTANO before the include lets
+# butano.mak locate its sibling butano_dka.mak and the rest of the toolchain.
+LIBBUTANO   := $(BUTANO)
+
+ifeq ($(wildcard $(LIBBUTANO)/butano.mak),)
+$(error Butano not found at '$(LIBBUTANO)'. Run tools/bootstrap_butano.sh or set BUTANO=/absolute/path/to/butano)
 endif
 
-include $(BUTANO)/butano.mak
+include $(LIBBUTANO)/butano.mak
