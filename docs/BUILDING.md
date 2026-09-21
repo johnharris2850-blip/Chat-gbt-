@@ -40,9 +40,13 @@ make -j2
 To use an existing checkout of the pinned engine:
 
 ```sh
-BUTANO=/absolute/path/to/butano tools/check_toolchain.sh
-make -j2 BUTANO=/absolute/path/to/butano
+BUTANO=/absolute/path/to/butano-repository/butano tools/check_toolchain.sh
+make -j2 BUTANO=/absolute/path/to/butano-repository/butano
 ```
+
+The upstream repository contains the engine in its `butano/` subdirectory; the
+repository root itself is not the SDK include path and does not contain
+`butano.mak`.
 
 The expected output is `crown_and_chaos.gba` in the repository root. Build output
 and ROMs are ignored by Git. Run `make clean` before a reproducibility build.
@@ -61,11 +65,13 @@ test build, not a commercial-ROM patch and does not require any base ROM.
 The workflow explicitly exports `/opt/devkitpro/devkitARM/bin` through
 `GITHUB_PATH` and verifies `arm-none-eabi-g++` before running the same strict
 toolchain check used by local builds.
-The dependency is checked out by `actions/checkout` directly under the workspace
-at `external/butano`. After checkout, the verification step logs the incoming
+The dependency repository is checked out by `actions/checkout` directly under
+the workspace at `external/butano`; its build entry point is
+`external/butano/butano/butano.mak`. After checkout, the verification step logs the incoming
 `BUTANO`, `GITHUB_WORKSPACE`, physical working directory, and resolved dependency
-path. It canonicalizes the existing `${GITHUB_WORKSPACE}/external/butano` with
-`realpath`, exports that exact container path through `GITHUB_ENV`, and only then
+path. It canonicalizes the engine's
+`${GITHUB_WORKSPACE}/external/butano/butano` subdirectory with `realpath`, exports
+that exact container path through `GITHUB_ENV`, and only then
 performs the location, Git metadata, pinned-tag commit, and `butano.mak` checks
 used by compilation. Because `actions/checkout` creates the nested checkout on
 the runner before the devkitPro container consumes it, the workflow marks only

@@ -199,6 +199,22 @@ correct:
 - The required `.git` entry and `butano.mak` file are still checked explicitly;
   the strict toolchain, ROM existence, checksum, and artifact gates are unchanged.
 
+### Butano build-entry-point correction
+
+Completed on 2026-09-21 after the real Actions checkout passed path and Git
+verification but showed that the repository root has no `butano.mak`:
+
+- The checkout remains at `external/butano`, while the `BUTANO` SDK variable now
+  points to the upstream engine subdirectory `external/butano/butano` containing
+  `butano.mak`.
+- CI prints the repository listing and searches three levels for `butano.mak`,
+  `common.mk`, and `Makefile` before applying strict checks, making the upstream
+  layout visible in every build log.
+- Git metadata and the pinned `18.1.0` tag are verified against the repository
+  root; the build entry point is verified separately against the engine directory.
+- Local defaults, bootstrap guidance, and the strict toolchain checker now use the
+  same repository-root versus engine-directory distinction as CI.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

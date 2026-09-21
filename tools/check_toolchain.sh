@@ -4,16 +4,22 @@ set -euo pipefail
 readonly EXPECTED_BUTANO_VERSION="18.1.0"
 readonly EXPECTED_DEVKITARM_RELEASE="65"
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-readonly BUTANO_PATH="${BUTANO:-${ROOT}/external/butano}"
+readonly BUTANO_PATH="${BUTANO:-${ROOT}/external/butano/butano}"
+readonly BUTANO_REPOSITORY="$(cd "${BUTANO_PATH}/.." 2>/dev/null && pwd -P || true)"
 
 [[ -n "${DEVKITPRO:-}" ]] || { echo 'DEVKITPRO is not set' >&2; exit 1; }
 [[ -n "${DEVKITARM:-}" ]] || { echo 'DEVKITARM is not set' >&2; exit 1; }
 command -v arm-none-eabi-g++ >/dev/null || { echo 'arm-none-eabi-g++ is not on PATH' >&2; exit 1; }
 [[ -f "${BUTANO_PATH}/butano.mak" ]] || { echo "Butano not found: ${BUTANO_PATH}" >&2; exit 1; }
 
-butano_version="$(git -C "${BUTANO_PATH}" describe --tags --exact-match 2>/dev/null || true)"
-[[ "${butano_version#v}" == "${EXPECTED_BUTANO_VERSION}" ]] || {
-    echo "Expected Butano ${EXPECTED_BUTANO_VERSION}; found '${butano_version:-unknown}'" >&2
+[[ -n "${BUTANO_REPOSITORY}" && -e "${BUTANO_REPOSITORY}/.git" ]] || {
+    echo "Butano Git checkout not found: ${BUTANO_REPOSITORY:-unknown}" >&2
+    exit 1
+}
+checked_out_commit="$(git -C "${BUTANO_REPOSITORY}" rev-parse HEAD 2>/dev/null || true)"
+pinned_commit="$(git -C "${BUTANO_REPOSITORY}" rev-parse "refs/tags/${EXPECTED_BUTANO_VERSION}^{commit}" 2>/dev/null || true)"
+[[ -n "${checked_out_commit}" && "${checked_out_commit}" == "${pinned_commit}" ]] || {
+    echo "Expected Butano ${EXPECTED_BUTANO_VERSION}; checkout is not at the pinned tag" >&2
     exit 1
 }
 

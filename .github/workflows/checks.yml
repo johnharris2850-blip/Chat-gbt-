@@ -48,8 +48,14 @@ jobs:
           printf 'BUTANO before resolution: %s\n' "${BUTANO:-<unset>}"
           printf 'GITHUB_WORKSPACE: %s\n' "${GITHUB_WORKSPACE}"
           printf 'pwd: %s\n' "$(pwd -P)"
-          expected_butano="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
-          printf 'resolved external/butano: %s\n' "${expected_butano}"
+          butano_repository="$(realpath -e "${GITHUB_WORKSPACE}/external/butano")"
+          expected_butano="$(realpath -e "${butano_repository}/butano")"
+          printf 'resolved Butano repository: %s\n' "${butano_repository}"
+          printf 'resolved Butano engine: %s\n' "${expected_butano}"
+          printf '%s\n' 'Butano checkout layout:'
+          ls -la "${butano_repository}"
+          printf '%s\n' 'Candidate build entry points:'
+          find "${butano_repository}" -maxdepth 3 \( -name butano.mak -o -name common.mk -o -name Makefile \) -print
 
           # Resolve the dependency inside the running devkitPro container.  Do
           # not import a host-side actions expression, since the host and the
@@ -62,18 +68,18 @@ jobs:
           # then consumed as root in the devkitPro container.  Register this
           # one verified path so Git's ownership protection does not prevent
           # the revision checks below.
-          git config --global --add safe.directory "${BUTANO}"
+          git config --global --add safe.directory "${butano_repository}"
 
           printf 'Verifying canonical dependency path...\n'
           test "${BUTANO}" = "${expected_butano}"
           printf 'Verifying Git checkout metadata...\n'
-          test -e "${BUTANO}/.git"
-          test "$(git -C "${BUTANO}" rev-parse --is-inside-work-tree)" = "true"
+          test -e "${butano_repository}/.git"
+          test "$(git -C "${butano_repository}" rev-parse --is-inside-work-tree)" = "true"
           printf 'Verifying Butano build entry point...\n'
           test -f "${BUTANO}/butano.mak"
           printf 'Verifying pinned Butano tag...\n'
-          checked_out_commit="$(git -C "${BUTANO}" rev-parse HEAD)"
-          pinned_commit="$(git -C "${BUTANO}" rev-parse 'refs/tags/18.1.0^{commit}')"
+          checked_out_commit="$(git -C "${butano_repository}" rev-parse HEAD)"
+          pinned_commit="$(git -C "${butano_repository}" rev-parse 'refs/tags/18.1.0^{commit}')"
           printf 'Butano HEAD: %s\nButano 18.1.0: %s\n' "${checked_out_commit}" "${pinned_commit}"
           test "${checked_out_commit}" = "${pinned_commit}"
           printf 'Butano checkout: %s\n' "${BUTANO}"

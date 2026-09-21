@@ -16,7 +16,7 @@ MAKERCODE   := 00
 
 USERFLAGS   := -Wall -Wextra -Wpedantic -Werror
 
-BUTANO      ?= external/butano
+BUTANO      ?= external/butano/butano
 
 ifeq ($(wildcard $(BUTANO)/butano.mak),)
 $(error Butano not found at '$(BUTANO)'. Run tools/bootstrap_butano.sh or set BUTANO=/absolute/path/to/butano)
