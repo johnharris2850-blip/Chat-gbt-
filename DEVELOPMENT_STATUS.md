@@ -258,6 +258,21 @@ Completed on 2026-09-21 after real-CI diagnostics proved `BUTANO` and
   building, so the checked-out 18.1.0 sources—not an assumed layout—are visible in
   the authoritative build log.
 
+### Deterministic ROM output correction
+
+Completed on 2026-09-21 after the real Butano compilation succeeded but the
+repository-root ROM gate found no file:
+
+- The root build now passes Butano/devkitARM's extension-free `OUTPUT` variable as
+  the absolute `${repository}/crown_and_chaos` path, while retaining
+  `TARGET := crown_and_chaos` for the supported project configuration.
+- The output is configured before Butano evaluates its rules, rather than copying
+  or renaming an unknown product after compilation.
+- The Build ROM step lists every generated `.gba` file with its size and requires
+  the canonical root ROM immediately; Record ROM uses the runtime
+  `GITHUB_WORKSPACE` path for existence, checksum, and size checks.
+- Artifact upload continues to require `crown_and_chaos.gba` and its SHA-256 file.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

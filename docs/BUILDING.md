@@ -55,7 +55,10 @@ log prints all three variables and the resulting `butano_dka.mak` path before th
 include is evaluated.
 
 The expected output is `crown_and_chaos.gba` in the repository root. Build output
-and ROMs are ignored by Git. Run `make clean` before a reproducibility build.
+and ROMs are ignored by Git. The root wrapper passes Butano's extension-free
+`OUTPUT` variable as the absolute repository-root path
+`$(CURDIR)/crown_and_chaos`, preventing the nested makefile location from moving
+the ROM into another directory. Run `make clean` before a reproducibility build.
 `make` always runs the deterministic generator before entering Butano, creating
 the ignored `graphics/*.png` and `audio/*.wav` inputs from the tracked Python and
 JSON sources. These generated binaries must never be committed. `make clean`

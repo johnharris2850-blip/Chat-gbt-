@@ -99,11 +99,14 @@ jobs:
           printf 'Expected LIBBUTANOABS: %s\n' "$(realpath -e "${BUTANO}")"
           printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
           make -j2
+          printf '%s\n' 'GBA files produced by the build:'
+          find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
+          test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
       - name: Record ROM
         run: |
-          test -s crown_and_chaos.gba
-          sha256sum crown_and_chaos.gba | tee crown_and_chaos.gba.sha256
-          stat -c '%n %s bytes' crown_and_chaos.gba
+          test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
+          sha256sum "${GITHUB_WORKSPACE}/crown_and_chaos.gba" | tee "${GITHUB_WORKSPACE}/crown_and_chaos.gba.sha256"
+          stat -c '%n %s bytes' "${GITHUB_WORKSPACE}/crown_and_chaos.gba"
       - uses: actions/upload-artifact@v4
         with:
           name: crown-and-chaos-gba-${{ github.sha }}

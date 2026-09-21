@@ -3,6 +3,11 @@
 
 TARGET      := crown_and_chaos
 BUILD       := build
+# Butano's devkitARM rules use OUTPUT as the extension-free absolute output
+# path. The root wrapper passes this on the recursive make command line so the
+# ROM is emitted at repository-root/crown_and_chaos.gba even though this
+# configuration file lives under make/.
+OUTPUT      ?= $(CURDIR)/$(TARGET)
 SOURCES     := src
 INCLUDES    := include
 DATA        := data
@@ -29,6 +34,7 @@ $(info Crown & Chaos BUTANO=$(BUTANO))
 $(info Crown & Chaos LIBBUTANO=$(LIBBUTANO))
 $(info Crown & Chaos LIBBUTANOABS=$(LIBBUTANOABS))
 $(info Crown & Chaos butano_dka=$(LIBBUTANOABS)/butano_dka.mak)
+$(info Crown & Chaos OUTPUT=$(OUTPUT))
 
 ifeq ($(strip $(LIBBUTANOABS)),)
 $(error Butano absolute SDK path could not be resolved from '$(LIBBUTANO)')
