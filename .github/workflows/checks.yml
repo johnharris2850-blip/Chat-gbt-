@@ -27,7 +27,6 @@ jobs:
     env:
       DEVKITPRO: /opt/devkitpro
       DEVKITARM: /opt/devkitpro/devkitARM
-      BUTANO: ${{ github.workspace }}/external/butano
     steps:
       - uses: actions/checkout@v4
       - name: Configure devkitARM toolchain
@@ -35,6 +34,7 @@ jobs:
         run: |
           test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
           echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
+          echo "BUTANO=${GITHUB_WORKSPACE}/external/butano" >> "${GITHUB_ENV}"
           "${DEVKITARM}/bin/arm-none-eabi-g++" --version
       - name: Check out pinned Butano
         uses: actions/checkout@v4

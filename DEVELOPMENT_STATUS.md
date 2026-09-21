@@ -154,6 +154,20 @@ Completed on 2026-09-21 after the next `gba-build` attempt:
 - The checksum and downloadable ROM artifact steps remain unchanged and will run
   only after a real successful compilation.
 
+### Container workspace-path correction
+
+Completed on 2026-09-21 after checkout verification exposed the host/container
+workspace distinction:
+
+- Removed the job-level `BUTANO: ${{ github.workspace }}/external/butano` value,
+  because GitHub evaluates that expression to the host path before entering the
+  devkitPro container.
+- The toolchain setup step now derives `BUTANO` from the container's runtime
+  `GITHUB_WORKSPACE` (`/__w/...`) and publishes it to later steps with
+  `GITHUB_ENV`.
+- The existing equality, repository, `butano.mak`, and exact-tag checks remain in
+  place and now validate the same mounted path populated by `actions/checkout`.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
