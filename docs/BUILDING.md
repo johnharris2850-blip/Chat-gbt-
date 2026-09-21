@@ -58,6 +58,9 @@ builds the ROM, records its SHA-256 checksum, and uploads both files as the
 `crown-and-chaos-gba-<commit>` artifact. On GitHub, open the commit's **Actions**
 run, select **Artifacts**, and download that artifact. A workflow artifact is a
 test build, not a commercial-ROM patch and does not require any base ROM.
+The workflow explicitly exports `/opt/devkitpro/devkitARM/bin` through
+`GITHUB_PATH` and verifies `arm-none-eabi-g++` before running the same strict
+toolchain check used by local builds.
 
 ## Emulator smoke test
 

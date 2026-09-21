@@ -126,6 +126,20 @@ Completed on 2026-09-21:
   deterministically restores all required build inputs. Local ROM compilation is
   still limited only by the previously recorded unavailable toolchain/network.
 
+### GitHub Actions toolchain-path fix
+
+Completed on 2026-09-21 after the first `gba-build` attempt:
+
+- The pinned devkitPro container contained devkitARM under
+  `/opt/devkitpro/devkitARM`, but its compiler directory was not present on the
+  GitHub Actions step `PATH`.
+- The job now declares `DEVKITPRO` and `DEVKITARM`, verifies the compiler exists at
+  `${DEVKITARM}/bin/arm-none-eabi-g++`, publishes that directory through
+  `GITHUB_PATH`, prints the compiler version, and confirms command lookup before
+  running the unchanged toolchain validator and ROM build.
+- This fixes the reported `arm-none-eabi-g++ is not on PATH` failure without
+  weakening or bypassing `tools/check_toolchain.sh`.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

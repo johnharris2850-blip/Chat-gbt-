@@ -24,12 +24,23 @@ jobs:
   gba-build:
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm:20241104
+    env:
+      DEVKITPRO: /opt/devkitpro
+      DEVKITARM: /opt/devkitpro/devkitARM
     steps:
       - uses: actions/checkout@v4
+      - name: Configure devkitARM toolchain
+        shell: bash
+        run: |
+          test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
+          echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
+          "${DEVKITARM}/bin/arm-none-eabi-g++" --version
       - name: Fetch pinned Butano
         run: git clone --branch 18.1.0 --depth 1 https://github.com/GValiente/butano.git external/butano
       - name: Build ROM
+        shell: bash
         run: |
+          command -v arm-none-eabi-g++
           tools/check_toolchain.sh
           make -j2
       - name: Record ROM
