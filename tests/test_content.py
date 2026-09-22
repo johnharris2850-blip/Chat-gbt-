@@ -95,7 +95,7 @@ class GeneratedGraphicsTests(unittest.TestCase):
             planes, bit_depth, compression = struct.unpack("<HHI", data[26:34])
             return width, height, planes, bit_depth if compression == 0 else -1
 
-        self.assertEqual(bmp_info(letters()), (16, 27 * 16, 1, 8))
+        self.assertEqual(bmp_info(letters()), (16, 37 * 16, 1, 8))
         self.assertEqual(bmp_info(markers()), (16, 17 * 16, 1, 8))
 
 
