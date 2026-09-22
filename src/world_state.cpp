@@ -19,7 +19,8 @@ namespace
     {
         { 2, 16, 15, 12, 0, false }, { 2, 21, 19, 13, 1, false },
         { 2, 8, 20, 14, 2, false }, { 2, 27, 18, 15, 3, false },
-        { 3, 26, 18, 15, 4, true }
+        { 3, 26, 18, 15, 4, true },
+        { 2, 14, 18, 16, 5, false }
     };
 
     [[nodiscard]] int tile_at(int pixel) { return (pixel + map_half_size) / 8; }
@@ -44,6 +45,8 @@ namespace
         case 1: lines = crown::generated::villager_2_dialogue[page]; count = crown::generated::villager_2_page_count; break;
         case 2: lines = crown::generated::villager_3_dialogue[page]; count = crown::generated::villager_3_page_count; break;
         case 3: lines = crown::generated::candy_dialogue[page]; count = crown::generated::candy_page_count; break;
+        case 5: lines = crown::generated::jexi_before_candy_dialogue[page]; count = crown::generated::jexi_before_candy_page_count; break;
+        case 6: lines = crown::generated::jexi_after_candy_dialogue[page]; count = crown::generated::jexi_after_candy_page_count; break;
         default: lines = crown::generated::finale_dialogue[page]; count = crown::generated::finale_page_count; break;
         }
     }
@@ -147,6 +150,7 @@ namespace crown
 
     void WorldState::begin_dialogue(std::uint8_t id)
     {
+        if(id == 5 && _candy_spoken_to) id = 6;
         _dialogue_id=id; _dialogue_page=0; _ui_mode=UiMode::dialogue; _audio_service.play_interaction(); show_dialogue_page();
     }
 
