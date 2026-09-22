@@ -79,7 +79,8 @@ def main() -> int:
 
     required = {
         "README.md": ("Player: John", "John's starter: Water type", "Candy's starter: Fire type"),
-        "Makefile": ("tools/generate_placeholder_assets.py", "PROJECT_ROOT :=", "SOURCES     := src", "INCLUDES    := include $(PROJECT_ROOT)/include", "GRAPHICS    := $(PROJECT_ROOT)/graphics", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANO)/butano.mak", "TARGET      := crown_and_chaos"),
+        "Makefile": ("SOURCES     := src", "INCLUDES    := include", "DATA        :=", "GRAPHICS    := graphics", "AUDIO       := audio", "DMGAUDIO    :=", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANOABS)/butano.mak", "TARGET      := crown_and_chaos"),
+        "make/host.mk": ("tools/generate_placeholder_assets.py", "tools/check_project.py", "tools/run_host_tests.sh"),
         "src/main.cpp": ("bn::core::init()", "crown::read_input()"),
         "src/input.cpp": ("bn::keypad::start_pressed()", "bn::keypad::a_pressed()"),
         "src/world_state.cpp": ("check_transition()", "check_secret()", "try_interaction()"),
@@ -91,8 +92,9 @@ def main() -> int:
                 errors.append(f"{filename} is missing required fragment: {fragment}")
 
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    if re.search(r"^DATA\s*:?=", makefile, re.MULTILINE):
-        errors.append("Makefile must not pass authored JSON sources through Butano DATA")
+    data_assignment = re.search(r"^DATA[ \t]*:?=[ \t]*(.*)$", makefile, re.MULTILINE)
+    if not data_assignment or data_assignment.group(1).strip():
+        errors.append("Makefile DATA must be empty; authored JSON is generated into C++")
 
     expected_graphics = {
         "letters.json": {"type": "sprite", "height": 16},

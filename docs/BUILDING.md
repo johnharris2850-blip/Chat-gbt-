@@ -34,7 +34,7 @@ python3 tools/generate_placeholder_assets.py --check
 python3 tools/check_project.py
 tools/bootstrap_butano.sh
 tools/check_toolchain.sh
-make assets
+make -f make/host.mk assets
 make -j1
 ```
 
@@ -56,12 +56,12 @@ The expected output is `crown_and_chaos.gba` in the repository root. Build outpu
 and ROMs are ignored by Git. The root `Makefile` follows Butano's standard project
 layout because Butano reinvokes that same absolute Makefile from the `build/`
 directory while compiling and linking. Generate assets before invoking the
-default build. Run `make clean` before a reproducibility build.
-`make assets` runs the deterministic generator before the default Butano build,
+default build. Run `make -f make/host.mk clean` before a reproducibility build.
+`make -f make/host.mk assets` runs the deterministic generator before the default Butano build,
 creating the ignored `graphics/*.png` and `audio/*.wav` inputs from the tracked
 Python and JSON sources. CI performs these two steps explicitly. These generated
-binaries must never be committed. `make clean`
-removes them along with the ROM and object output; `make verify` runs all host
+binaries must never be committed. `make -f make/host.mk clean`
+removes them along with the ROM and object output; `make -f make/host.mk verify` runs all host
 checks without requiring generated binaries to be present.
 
 Every push and pull request also runs `.github/workflows/checks.yml`. Its GBA job

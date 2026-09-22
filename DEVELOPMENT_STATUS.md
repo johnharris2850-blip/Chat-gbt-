@@ -388,6 +388,23 @@ discovery but could not resolve `audio_service.h`:
   require all non-Butano headers—including `generated/world_data.h`—to exist
   beneath the configured project include tree.
 
+### Standard Butano project Makefile restoration
+
+Completed on 2026-09-22 after mixed absolute/relative path experiments continued
+to alternate between missing generated headers, missing project headers, and
+missing linker objects:
+
+- Replaced the conditional wrapper with the complete Butano 18.1.0 project
+  layout: relative `SOURCES`, `INCLUDES`, `GRAPHICS`, and `AUDIO`; explicitly
+  empty `DATA` and `DMGAUDIO`; all supported user flag/library variables; and a
+  single include of the canonical `LIBBUTANOABS/butano.mak` entry point.
+- Moved SDK-independent `assets`, `verify`, and `clean` targets to
+  `make/host.mk`. Butano can now reinvoke the root Makefile from `build/`
+  without encountering wrapper conditionals or path forms that change its
+  source, VPATH, generated-header, and object mapping.
+- CI performs the host clean explicitly, lists every graphics input presented to
+  Butano, and then performs one complete standard project build.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

@@ -100,13 +100,21 @@ jobs:
           printf 'Expected butano_dka.mak: %s\n' "$(realpath -e "${BUTANO}/butano_dka.mak")"
           # Always start from an empty build/output tree. Generated assets are
           # recreated below, so stale converter output cannot mask a failure.
-          make clean
+          make -f make/host.mk clean
           python3 tools/generate_placeholder_assets.py
           python3 tools/check_project.py
           printf 'Configured graphics directory: %s\n' "$(realpath -e graphics)"
+          printf '%s\n' 'Graphics inputs presented to Butano:'
+          find graphics -maxdepth 1 -type f -print | sort
           test -f "$(realpath -e graphics)/letters.png"
           test -f "$(realpath -e graphics)/letters.json"
-          make -j1
+          if ! make -j1; then
+            printf '%s\n' 'Build tree at failure:'
+            find build -maxdepth 2 -type f -print | sort || true
+            exit 1
+          fi
+          printf '%s\n' 'Generated item headers and project objects:'
+          find build -maxdepth 2 -type f \( -name 'bn_*_items_*.h' -o -name '*.o' \) -print | sort
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
           test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"

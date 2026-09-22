@@ -15,6 +15,6 @@ not currently configured; a future
 `dmg_audio/` directory is optional and must contain only valid Butano DMG-audio
 assets if the build enables it.
 
-Run `make assets` to generate binary inputs, `make verify` to check asset
-directory hygiene and content, and `make clean` to remove generated inputs and
-all ROM build output.
+Run `make -f make/host.mk assets` to generate binary inputs,
+`make -f make/host.mk verify` to check asset directory hygiene and content, and
+`make -f make/host.mk clean` to remove generated inputs and all ROM build output.
