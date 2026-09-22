@@ -21,6 +21,11 @@ namespace
             return 26;
         }
 
+        if(character >= '0' && character <= '9')
+        {
+            return 27 + character - '0';
+        }
+
         return -1;
     }
 }
