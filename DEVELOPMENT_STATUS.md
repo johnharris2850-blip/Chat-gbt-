@@ -421,6 +421,20 @@ target:
 - CI now verifies and prints the Python 3 interpreter immediately before the
   toolchain and asset build, and repository checks require the root assignment.
 
+### Butano sprite-sheet layout correction
+
+Completed on 2026-09-22 after CI confirmed both `letters.png` and
+`letters.json` reached Butano but no `bn_sprite_items_letters.h` was emitted:
+
+- Corrected the deterministic letters and markers sheets from horizontal strips
+  to Butano's vertically stacked sprite-item layout. In Butano metadata,
+  `height: 16` describes each item height; it does not split a 416-pixel-wide
+  image into 16-pixel-wide frames.
+- `letters.png` is now 16×416 (26 items) and `markers.png` is 16×224 (14 items),
+  keeping all existing item indices and gameplay behavior unchanged.
+- Added a host regression test that decodes the generated PNG headers and
+  requires those exact sprite-sheet dimensions.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

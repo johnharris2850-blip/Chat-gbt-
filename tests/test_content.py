@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import struct
 import unittest
 from collections import deque
 from pathlib import Path
@@ -85,6 +86,18 @@ class DialogueDataTests(unittest.TestCase):
         for page in DIALOGUE["elder_mara"]:
             for line in page:
                 self.assertIn(f'\"{line}\"', GENERATED_WORLD)
+
+
+class GeneratedGraphicsTests(unittest.TestCase):
+    def test_sprite_items_are_stacked_vertically_for_butano(self) -> None:
+        from tools.generate_placeholder_assets import letters, markers
+
+        def dimensions(data: bytes) -> tuple[int, int]:
+            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+            return struct.unpack(">II", data[16:24])
+
+        self.assertEqual(dimensions(letters()), (16, 26 * 16))
+        self.assertEqual(dimensions(markers()), (16, 14 * 16))
 
 
 if __name__ == "__main__":

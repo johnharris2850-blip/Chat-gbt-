@@ -53,7 +53,9 @@ def png(width: int, height: int, pixels: bytes) -> bytes:
 
 
 def letters() -> bytes:
-    width, height = 26 * 16, 16
+    # Butano sprite items are stacked vertically; `height` in letters.json is
+    # the height of each item, not the height of a horizontal strip.
+    width, height = 16, 26 * 16
     pixels = bytearray(width * height * 4)
     for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
         for row, bits in enumerate(GLYPHS[glyph]):
@@ -61,15 +63,15 @@ def letters() -> bytes:
                 if bit == "1":
                     for yy in range(2):
                         for xx in range(2):
-                            x = glyph_index * 16 + 3 + column * 2 + xx
-                            y = 1 + row * 2 + yy
+                            x = 3 + column * 2 + xx
+                            y = glyph_index * 16 + 1 + row * 2 + yy
                             offset = (y * width + x) * 4
                             pixels[offset:offset + 4] = bytes((240, 248, 255, 255))
     return png(width, height, bytes(pixels))
 
 
 def markers() -> bytes:
-    width, height = 14 * 16, 16
+    width, height = 16, 14 * 16
     pixels = bytearray(width * height * 4)
     for frame in range(12):
         for y in range(2, 14):
@@ -78,13 +80,13 @@ def markers() -> bytes:
                 foot_gap = y > 10 and ((frame % 3 == 1 and x < 8) or (frame % 3 == 2 and x > 8))
                 if not foot_gap:
                     color = (232, 244, 255, 255) if border else (28, 112, 216, 255)
-                    offset = (y * width + frame * 16 + x) * 4
+                    offset = ((frame * 16 + y) * width + x) * 4
                     pixels[offset:offset + 4] = bytes(color)
     for frame, fill in ((12, (170, 70, 52, 255)), (13, (240, 196, 40, 255))):
         for y in range(2, 14):
             for x in range(2, 14):
                 color = (250, 245, 220, 255) if x in (2, 13) or y in (2, 13) else fill
-                offset = (y * width + frame * 16 + x) * 4
+                offset = ((frame * 16 + y) * width + x) * 4
                 pixels[offset:offset + 4] = bytes(color)
     return png(width, height, bytes(pixels))
 
