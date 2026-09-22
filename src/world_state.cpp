@@ -263,7 +263,7 @@ namespace crown
         constexpr const char* tideling_moves[]={"TIDE TACKLE","BUBBLE BURST","BRACE","LITTLE ROAR"};
         constexpr const char* eevee_moves[]={"STAR DASH","GUIDING LIGHT","QUICK STEP","WATCHFUL EYES"};
         render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,27,_ui_sprites);
-        render_text(_battle_move < 2 ? "UP DOWN MORE MOVES" : "UP DOWN MORE MOVES",0,41,_ui_sprites);
+        render_text("DPAD SELECT MOVE",0,41,_ui_sprites);
         render_text(_battle_eevee ? (_eevee_hp > 9 ? "EEVEE HP 20" : "EEVEE HP LOW") : (_tideling_hp > 9 ? "TIDELING HP 20" : "TIDELING HP LOW"),0,55,_ui_sprites);
         render_text(_eevee_met ? "A MOVE B SWITCH" : "A USE MOVE",0,69,_ui_sprites);
     }
