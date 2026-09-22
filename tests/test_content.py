@@ -96,7 +96,7 @@ class GeneratedGraphicsTests(unittest.TestCase):
             return width, height, planes, bit_depth if compression == 0 else -1
 
         self.assertEqual(bmp_info(letters()), (16, 27 * 16, 1, 8))
-        self.assertEqual(bmp_info(markers()), (16, 16 * 16, 1, 8))
+        self.assertEqual(bmp_info(markers()), (16, 17 * 16, 1, 8))
 
 
 if __name__ == "__main__":
