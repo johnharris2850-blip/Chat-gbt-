@@ -1,0 +1,28 @@
+{
+  "maps": [
+    {
+      "id": "johns_bedroom", "display_name": "John's Bedroom", "width": 32, "height": 32,
+      "spawn": [16, 20], "walkable": [[6, 5, 26, 28]],
+      "blocked": [[7, 7, 12, 12], [19, 7, 24, 10], [7, 17, 11, 22], [21, 15, 24, 22]],
+      "transitions": [{ "at": [16, 27], "to": "johns_house", "spawn": [16, 10] }]
+    },
+    {
+      "id": "johns_house", "display_name": "John's House", "width": 32, "height": 32,
+      "spawn": [16, 10], "walkable": [[5, 5, 27, 28]],
+      "blocked": [[6, 6, 13, 11], [20, 6, 26, 12], [7, 17, 13, 22], [19, 17, 25, 21]],
+      "transitions": [{ "at": [16, 9], "to": "johns_bedroom", "spawn": [16, 25] }, { "at": [16, 27], "to": "crownhaven", "spawn": [8, 14] }]
+    },
+    {
+      "id": "crownhaven", "display_name": "Crownhaven", "width": 32, "height": 32,
+      "spawn": [8, 14], "walkable": [[1, 1, 31, 31]],
+      "blocked": [[4, 5, 12, 12], [17, 4, 25, 11], [20, 21, 29, 29], [2, 22, 9, 29], [12, 2, 16, 9], [12, 22, 18, 28], [25, 1, 31, 15], [1, 1, 31, 3]],
+      "transitions": [{ "at": [8, 12], "to": "johns_house", "spawn": [16, 25] }, { "at": [30, 18], "to": "old_road", "spawn": [2, 18] }]
+    },
+    {
+      "id": "old_road", "display_name": "Old Road", "width": 32, "height": 32,
+      "spawn": [2, 18], "walkable": [[1, 8, 31, 25]],
+      "blocked": [[1, 8, 31, 13], [1, 23, 31, 25], [8, 13, 12, 16], [16, 20, 20, 23], [22, 13, 24, 16]],
+      "transitions": [{ "at": [1, 18], "to": "crownhaven", "spawn": [29, 18] }]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# Butano/devkitARM build output
+build/
+external/
+*.gba
+*.elf
+*.map
+*.sav
+
+# Generated build intermediates (authored deterministic headers remain tracked)
+build/generated/
+
+# Deterministic binary inputs emitted by tools/generate_placeholder_assets.py
+graphics/*.bmp
+audio/*.wav
+
+# Local configuration and tooling
+.env
+.cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test/tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+coverage/
+
+# Keep licensed source assets, but never local ROM material.
+*.gb
+*.gbc
+*.nds
+*.3ds
+*.cia
+*.ips
+*.ups
+*.bps
