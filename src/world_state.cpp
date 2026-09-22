@@ -219,8 +219,15 @@ namespace crown
         if(_eevee_met) _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(64,-12));
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
         render_text("JOHNS PARTY",0,18,_ui_sprites);
-        render_text(_tideling_level > 5 ? "TIDELING LV 6" : "TIDELING LV 5",0,34,_ui_sprites);
-        render_text(_eevee_met ? "EEVEE MYSTERY PARTNER" : (_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20"),0,50,_ui_sprites);
+        render_text(_tideling_level > 5 ? "TIDELING LV 6 HP 20" : "TIDELING LV 5 HP 20",0,34,_ui_sprites);
+        if(_eevee_met)
+        {
+            render_text(_eevee_level > 5 ? "EEVEE LV 6 HP 20" : "EEVEE LV 5 HP 20",0,50,_ui_sprites);
+        }
+        else
+        {
+            render_text(_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20",0,50,_ui_sprites);
+        }
     }
 
     void WorldState::start_first_battle()
