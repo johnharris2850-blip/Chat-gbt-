@@ -363,14 +363,16 @@ missing `bn_sprite_items_letters.h` was not a parallel-build race:
 Completed on 2026-09-22 after the graphics fix reached the final link but the
 linker could not find the seven Crown & Chaos project objects:
 
-- Restored Butano's standard relative `SOURCES := src` and
-  `INCLUDES := include` configuration. Butano's devkitARM make layer flattens
-  source names into objects in `build/`; absolute source paths broke that
-  source-to-object mapping even though discovery still listed the `.cpp` files.
-- Retained canonical project-root paths only for generated `GRAPHICS` and
-  `AUDIO`, which must remain discoverable during Butano's recursive build.
-- Repository validation now enforces this split: standard relative code paths
-  and stable absolute generated-asset paths.
+- Restored Butano's standard relative `SOURCES := src` configuration. Butano's
+  devkitARM make layer flattens source names into objects in `build/`; absolute
+  source paths broke that source-to-object mapping even though discovery still
+  listed the `.cpp` files.
+- The subsequent real CI run showed that reverting `INCLUDES` together with
+  `SOURCES` also regressed generated item-header discovery. `INCLUDES`,
+  `GRAPHICS`, and `AUDIO` therefore retain their previously working canonical
+  project-root paths while only `SOURCES` is relative for correct object names.
+- Repository validation enforces this deliberate split instead of alternating
+  between the two incomplete configurations.
 
 ## Milestone 2 — Data and engine skeleton
 
