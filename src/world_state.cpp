@@ -76,9 +76,12 @@ namespace crown
             if(_shake_frames == 0) show_dialogue_page();
             return;
         }
-        if(_ui_mode == UiMode::battle && (input.left_held || input.right_held))
+        if(_ui_mode == UiMode::battle && !_battle_result && (input.left_held || input.right_held || input.up_held || input.down_held))
         {
-            _battle_move = 1 - _battle_move;
+            if(input.left_held && (_battle_move & 1)) --_battle_move;
+            else if(input.right_held && !(_battle_move & 1)) ++_battle_move;
+            else if(input.up_held && _battle_move >= 2) _battle_move -= 2;
+            else if(input.down_held && _battle_move < 2) _battle_move += 2;
             show_battle();
             return;
         }
@@ -256,16 +259,23 @@ namespace crown
             render_text("PRESS A",0,52,_ui_sprites);
             return;
         }
-        render_text(_battle_eevee ? "EEVEE VS THORNLET" : "TIDELING VS THORNLET",0,18,_ui_sprites);
-        render_text(_battle_eevee ? (_battle_move == 0 ? "STAR DASH" : "GUIDING LIGHT") : (_battle_move == 0 ? "TIDE TACKLE" : "BUBBLE BURST"),0,32,_ui_sprites);
-        render_text(_battle_eevee ? (_eevee_hp > 9 ? "EEVEE HP 20" : "EEVEE HP LOW") : (_tideling_hp > 9 ? "TIDELING HP 20" : "TIDELING HP LOW"),0,46,_ui_sprites);
-        render_text(_wild_hp <= 5 ? "THORNLET HP LOW" : (_eevee_met ? "B SWITCH PARTNER" : "A USE MOVE"),0,60,_ui_sprites);
+        render_text(_battle_eevee ? "EEVEE VS THORNLET" : "TIDELING VS THORNLET",0,12,_ui_sprites);
+        constexpr const char* tideling_moves[]={"TIDE TACKLE","BUBBLE BURST","BRACE","LITTLE ROAR"};
+        constexpr const char* eevee_moves[]={"STAR DASH","GUIDING LIGHT","QUICK STEP","WATCHFUL EYES"};
+        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,27,_ui_sprites);
+        render_text(_battle_move < 2 ? "UP DOWN MORE MOVES" : "UP DOWN MORE MOVES",0,41,_ui_sprites);
+        render_text(_battle_eevee ? (_eevee_hp > 9 ? "EEVEE HP 20" : "EEVEE HP LOW") : (_tideling_hp > 9 ? "TIDELING HP 20" : "TIDELING HP LOW"),0,55,_ui_sprites);
+        render_text(_eevee_met ? "A MOVE B SWITCH" : "A USE MOVE",0,69,_ui_sprites);
     }
 
     void WorldState::choose_battle_move(const Input&)
     {
         ++_battle_turn;
-        _wild_hp -= _battle_eevee ? (_battle_move == 0 ? 5 : 6) : (_battle_move == 0 ? 4 : 6);
+        constexpr int tideling_damage[]={4,6,0,2};
+        constexpr int eevee_damage[]={5,6,4,1};
+        _wild_hp -= _battle_eevee ? eevee_damage[_battle_move] : tideling_damage[_battle_move];
+        if(!_battle_eevee && _battle_move == 2) _tideling_hp = bn::min(20, _tideling_hp + 3);
+        if(_battle_eevee && _battle_move == 3) _eevee_hp = bn::min(20, _eevee_hp + 2);
         if(_wild_hp <= 0)
         {
             if(_battle_eevee)
