@@ -32,6 +32,11 @@ jobs:
       - name: Configure devkitARM toolchain
         shell: bash
         run: |
+          # actions/checkout creates the workspace on the host, while this job
+          # consumes it as root inside the devkitPro container. Trust only this
+          # runtime workspace so project-side Git checks (such as git ls-files)
+          # are not rejected by Git's ownership protection.
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           test -x "${DEVKITARM}/bin/arm-none-eabi-g++"
           echo "${DEVKITARM}/bin" >> "${GITHUB_PATH}"
           "${DEVKITARM}/bin/arm-none-eabi-g++" --version

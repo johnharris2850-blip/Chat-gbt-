@@ -322,6 +322,16 @@ still treating the removed, unused `dmg_audio/` directory as mandatory:
 - No marker or placeholder file is used to manufacture an otherwise empty asset
   directory.
 
+### Container workspace Git ownership correction
+
+Completed on 2026-09-22:
+
+- The GBA job now registers the runtime `${GITHUB_WORKSPACE}` as a Git safe
+  directory before any project-side validation runs inside the devkitPro
+  container.
+- The existing, separately verified Butano checkout remains registered by its
+  canonical dependency path; no global wildcard trust is used.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
