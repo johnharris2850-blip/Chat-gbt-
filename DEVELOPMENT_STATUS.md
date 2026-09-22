@@ -435,6 +435,20 @@ Completed on 2026-09-22 after CI confirmed both `letters.png` and
 - Added a host regression test that decodes the generated PNG headers and
   requires those exact sprite-sheet dimensions.
 
+### Recursive graphics discovery correction
+
+Completed on 2026-09-22 after the corrected sprite inputs were listed by CI but
+the Butano log still entered C++ compilation without running graphics conversion:
+
+- `GRAPHICS` and `AUDIO` now use paths rooted at the Makefile location, so they
+  continue to identify the authored/generated inputs when Butano evaluates the
+  project from its `build/` working directory.
+- `SOURCES := src` and `INCLUDES := include` remain in the standard relative
+  form required for project object and header mapping; the asset fix does not
+  change either code path.
+- The deterministic sheet-layout and metadata checks remain in place, so path
+  discovery and asset validity are independently protected.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

@@ -1,13 +1,15 @@
 # Crown & Chaos — standard Butano 18.1.0 project Makefile.
 
+PROJECT_ROOT := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+
 TARGET      := crown_and_chaos
 BUILD       := build
 PYTHON      := python3
 SOURCES     := src
 INCLUDES    := include
 DATA        :=
-GRAPHICS    := graphics
-AUDIO       := audio
+GRAPHICS    := $(PROJECT_ROOT)/graphics
+AUDIO       := $(PROJECT_ROOT)/audio
 DMGAUDIO    :=
 
 ROMTITLE    := CROWN CHAOS
