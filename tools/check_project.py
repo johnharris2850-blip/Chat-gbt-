@@ -93,7 +93,7 @@ def main() -> int:
         "make/host.mk": ("tools/generate_placeholder_assets.py", "tools/check_project.py", "tools/run_host_tests.sh"),
         "src/main.cpp": ("bn::core::init()", "crown::read_input()"),
         "src/input.cpp": ("bn::keypad::start_pressed()", "bn::keypad::a_pressed()"),
-        "src/world_state.cpp": ("check_transition()", "check_secret()", "try_interaction()"),
+        "src/world_state.cpp": ("check_transition()", "check_finale()", "try_interaction()"),
     }
     for filename, fragments in required.items():
         text = (ROOT / filename).read_text(encoding="utf-8")
@@ -110,8 +110,11 @@ def main() -> int:
         "letters.json": {"type": "sprite", "height": 16},
         "markers.json": {"type": "sprite", "height": 16},
         "ui_panel.json": {"type": "sprite", "height": 64},
-        "starter_area.json": {"type": "regular_bg"},
-        "johns_home.json": {"type": "regular_bg"},
+        "title.json": {"type": "regular_bg"},
+        "bedroom.json": {"type": "regular_bg"},
+        "house.json": {"type": "regular_bg"},
+        "crownhaven.json": {"type": "regular_bg"},
+        "old_road.json": {"type": "regular_bg"},
     }
     for filename, expected in expected_graphics.items():
         path = ROOT / "graphics" / filename

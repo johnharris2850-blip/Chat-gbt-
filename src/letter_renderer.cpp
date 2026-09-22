@@ -16,6 +16,11 @@ namespace
             }
         }
 
+        if(character == '&')
+        {
+            return 26;
+        }
+
         return -1;
     }
 }
