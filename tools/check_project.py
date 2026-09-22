@@ -79,7 +79,7 @@ def main() -> int:
 
     required = {
         "README.md": ("Player: John", "John's starter: Water type", "Candy's starter: Fire type"),
-        "Makefile": ("tools/generate_placeholder_assets.py", "PROJECT_ROOT :=", "SOURCES     := src", "INCLUDES    := $(PROJECT_ROOT)/include", "GRAPHICS    := $(PROJECT_ROOT)/graphics", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANO)/butano.mak", "TARGET      := crown_and_chaos"),
+        "Makefile": ("tools/generate_placeholder_assets.py", "PROJECT_ROOT :=", "SOURCES     := src", "INCLUDES    := include $(PROJECT_ROOT)/include", "GRAPHICS    := $(PROJECT_ROOT)/graphics", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANO)/butano.mak", "TARGET      := crown_and_chaos"),
         "src/main.cpp": ("bn::core::init()", "crown::read_input()"),
         "src/input.cpp": ("bn::keypad::start_pressed()", "bn::keypad::a_pressed()"),
         "src/world_state.cpp": ("check_transition()", "check_secret()", "try_interaction()"),
@@ -105,6 +105,15 @@ def main() -> int:
         path = ROOT / "graphics" / filename
         if path.exists() and json.loads(path.read_text(encoding="utf-8")) != expected:
             errors.append(f"invalid Butano graphics metadata: graphics/{filename}")
+
+    generated_header_prefixes = ("bn_",)
+    for source in (ROOT / "src").glob("*.cpp"):
+        source_text = source.read_text(encoding="utf-8")
+        for header in re.findall(r'^#include "([^"]+)"', source_text, re.MULTILINE):
+            if header.startswith(generated_header_prefixes):
+                continue
+            if not (ROOT / "include" / header).is_file():
+                errors.append(f"unresolved project header in {source.relative_to(ROOT)}: {header}")
 
     if errors:
         print("\n".join(errors), file=sys.stderr)

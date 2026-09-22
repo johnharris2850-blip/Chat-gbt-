@@ -374,6 +374,20 @@ linker could not find the seven Crown & Chaos project objects:
 - Repository validation enforces this deliberate split instead of alternating
   between the two incomplete configurations.
 
+### Project include-path correction
+
+Completed on 2026-09-22 after the real build retained generated graphics-header
+discovery but could not resolve `audio_service.h`:
+
+- `INCLUDES` now begins with Butano's standard project-relative `include` entry,
+  allowing its make layer to construct the correct compiler include flag.
+- The canonical include entry is retained as a second path so the recursive
+  build keeps the configuration that exposed generated item headers in the
+  preceding successful graphics stage.
+- Repository checks scan every quoted include in every `src/*.cpp` file and
+  require all non-Butano headers—including `generated/world_data.h`—to exist
+  beneath the configured project include tree.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
