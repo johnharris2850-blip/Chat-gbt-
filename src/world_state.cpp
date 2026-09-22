@@ -60,11 +60,13 @@ namespace crown
         _background(create_background(0)), _player(bn::sprite_items::markers.create_sprite(0, 0, 0))
     {
         const SaveData& save = save_service.data();
-        _candy_spoken_to = save.candy_spoken_to;
-        _finale_seen = save.finale_seen;
-        _facing = static_cast<Direction>(save.facing < 4 ? save.facing : 0);
-        const std::uint8_t map = save.map_id < generated::map_count ? save.map_id : 0;
-        load_map(map, save.player_x, save.player_y);
+        // Build 2 changes the progression flow substantially. Start every boot at
+        // the bedroom checkpoint for now so stale emulator SRAM cannot drop a test
+        // build directly into Old Road/battle content.
+        _candy_spoken_to = false;
+        _finale_seen = false;
+        _facing = Direction::down;
+        load_map(0, -4, 20);
     }
 
     void WorldState::update(const Input& input)
