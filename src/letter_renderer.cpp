@@ -37,7 +37,7 @@ namespace crown
         // The generated glyph sheet uses 16x16 OBJ cells, but the actual letters are
         // compact. Scale the cells down to a GBA-RPG dialogue size and use a tight
         // advance so 23-character lines fit cleanly inside the dialogue panel.
-        constexpr int advance = 10;
+        constexpr int advance = 6;
         const int start_x = center_x - (text.size() * advance) / 2 + advance / 2;
 
         for(int index = 0; index < text.size(); ++index)
