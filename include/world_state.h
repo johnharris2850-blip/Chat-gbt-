@@ -21,7 +21,7 @@ namespace crown
         void update(const Input& input);
 
     private:
-        enum class UiMode { none, dialogue, start_menu, starter_scene };
+        enum class UiMode { none, dialogue, start_menu, starter_scene, party, battle };
         void load_map(std::uint8_t map_id, int x, int y);
         void spawn_npcs();
         void update_movement(const Input& input);
@@ -31,6 +31,9 @@ namespace crown
         void show_dialogue_page();
         void open_start_menu();
         void show_starter_scene();
+        void show_party();
+        void start_first_battle();
+        void show_battle();
         void close_ui();
         void check_transition();
         void check_finale();
@@ -57,6 +60,9 @@ namespace crown
         int _shake_frames = 0;
         bool _candy_spoken_to = false;
         bool _finale_seen = false;
+        bool _first_battle_seen = false;
+        int _tideling_hp = 20;
+        int _wild_hp = 16;
     };
 }
 
