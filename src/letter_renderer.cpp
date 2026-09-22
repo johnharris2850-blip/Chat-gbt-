@@ -1,6 +1,7 @@
 #include "letter_renderer.h"
 
 #include "bn_sprite_items_letters.h"
+#include "bn_sprite_affine_mat_ptr.h"
 
 namespace
 {
