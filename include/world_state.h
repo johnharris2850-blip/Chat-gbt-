@@ -68,6 +68,9 @@ namespace crown
         int _battle_move = 0;
         int _tideling_exp = 0;
         int _tideling_level = 5;
+        int _eevee_hp = 20;
+        int _eevee_exp = 0;
+        int _eevee_level = 5;
         bool _eevee_met = false;
     };
 }
