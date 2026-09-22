@@ -1,7 +1,6 @@
 #include "letter_renderer.h"
 
 #include "bn_sprite_items_letters.h"
-#include "bn_sprite_affine_mat_ptr.h"
 
 namespace
 {
@@ -38,7 +37,7 @@ namespace crown
         // The generated glyph sheet uses 16x16 OBJ cells, but the actual letters are
         // compact. Scale the cells down to a GBA-RPG dialogue size and use a tight
         // advance so 23-character lines fit cleanly inside the dialogue panel.
-        constexpr int advance = 7;
+        constexpr int advance = 10;
         const int start_x = center_x - (text.size() * advance) / 2 + advance / 2;
 
         for(int index = 0; index < text.size(); ++index)
@@ -48,14 +47,8 @@ namespace crown
             if(tile >= 0)
             {
                 bn::sprite_ptr glyph = bn::sprite_items::letters.create_sprite(start_x + index * advance, y, tile);
-                // All glyphs use the same 0.5 affine transform. Butano can share
-                // that transform between sprites instead of allocating one matrix
-                // per character, avoiding the GBA affine-matrix limit.
-                glyph.set_scale(0.5);
-                if(! output.empty())
-                {
-                    glyph.set_affine_mat(output.front().affine_mat());
-                }
+                // Keep glyphs unscaled. Scaling each character consumes scarce
+                // sprite affine resources on real GBA hardware/emulators.
                 output.push_back(bn::move(glyph));
             }
         }
