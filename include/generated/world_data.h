@@ -184,6 +184,20 @@ namespace crown::generated
         { "CROWN & CHAOS", "TO BE CONTINUED", "" },
     };
 
+    constexpr int jexi_before_candy_page_count = 2;
+    constexpr const char* jexi_before_candy_dialogue[jexi_before_candy_page_count][3] =
+    {
+        { "JEXI HERE", "PROFESSORS ASSISTANT", "" },
+        { "LOOKING FOR CANDY", "TRY EAST CROWNHAVEN", "" },
+    };
+
+    constexpr int jexi_after_candy_page_count = 2;
+    constexpr const char* jexi_after_candy_dialogue[jexi_after_candy_page_count][3] =
+    {
+        { "LOST AGAIN JOHN", "I WAS WONDERING", "HOW LONG IT WOULD TAKE" },
+        { "YOUR NEXT STOP IS", "THE OLD ROAD", "HEAD EAST" },
+    };
+
     [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)
     {
         return map_id >= 0 && map_id < map_count && x >= 0 && x < 32 && y >= 0 && y < 32 &&
