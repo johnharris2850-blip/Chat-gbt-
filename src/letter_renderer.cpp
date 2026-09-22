@@ -47,7 +47,14 @@ namespace crown
             if(tile >= 0)
             {
                 bn::sprite_ptr glyph = bn::sprite_items::letters.create_sprite(start_x + index * advance, y, tile);
+                // All glyphs use the same 0.5 affine transform. Butano can share
+                // that transform between sprites instead of allocating one matrix
+                // per character, avoiding the GBA affine-matrix limit.
                 glyph.set_scale(0.5);
+                if(! output.empty())
+                {
+                    glyph.set_affine_mat(output.front().affine_mat());
+                }
                 output.push_back(bn::move(glyph));
             }
         }
