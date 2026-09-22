@@ -2,6 +2,7 @@
 
 TARGET      := crown_and_chaos
 BUILD       := build
+PYTHON      := python3
 SOURCES     := src
 INCLUDES    := include
 DATA        :=

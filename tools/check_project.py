@@ -79,7 +79,7 @@ def main() -> int:
 
     required = {
         "README.md": ("Player: John", "John's starter: Water type", "Candy's starter: Fire type"),
-        "Makefile": ("SOURCES     := src", "INCLUDES    := include", "DATA        :=", "GRAPHICS    := graphics", "AUDIO       := audio", "DMGAUDIO    :=", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANOABS)/butano.mak", "TARGET      := crown_and_chaos"),
+        "Makefile": ("PYTHON      := python3", "SOURCES     := src", "INCLUDES    := include", "DATA        :=", "GRAPHICS    := graphics", "AUDIO       := audio", "DMGAUDIO    :=", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANOABS)/butano.mak", "TARGET      := crown_and_chaos"),
         "make/host.mk": ("tools/generate_placeholder_assets.py", "tools/check_project.py", "tools/run_host_tests.sh"),
         "src/main.cpp": ("bn::core::init()", "crown::read_input()"),
         "src/input.cpp": ("bn::keypad::start_pressed()", "bn::keypad::a_pressed()"),

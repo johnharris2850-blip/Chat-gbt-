@@ -405,6 +405,22 @@ missing linker objects:
 - CI performs the host clean explicitly, lists every graphics input presented to
   Butano, and then performs one complete standard project build.
 
+### Butano Python command correction
+
+Completed on 2026-09-22 after the real build printed
+`bash: line 1: B: command not found` before Make reported a missing generated
+target:
+
+- Restored the mandatory template assignment `PYTHON := python3` in the root
+  Butano Makefile. The standard-layout rewrite had moved the host-side Python
+  default to `make/host.mk` but failed to retain it in the SDK-facing Makefile.
+  As a result, Butano's make-time asset-tool command/probe expanded without its
+  interpreter and Bash attempted to execute a fragment of the generated command
+  (`B`) as a program; the downstream missing target was the asset output that
+  command should have generated.
+- CI now verifies and prints the Python 3 interpreter immediately before the
+  toolchain and asset build, and repository checks require the root assignment.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
