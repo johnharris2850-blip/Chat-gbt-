@@ -28,8 +28,8 @@ else
 
 TARGET      := crown_and_chaos
 BUILD       := build
-SOURCES     := $(PROJECT_ROOT)/src
-INCLUDES    := $(PROJECT_ROOT)/include
+SOURCES     := src
+INCLUDES    := include
 GRAPHICS    := $(PROJECT_ROOT)/graphics
 AUDIO       := $(PROJECT_ROOT)/audio
 

@@ -358,6 +358,20 @@ missing `bn_sprite_items_letters.h` was not a parallel-build race:
 - Repository checks validate the exact Butano sprite metadata (`type: sprite`,
   `height: 16`) for letters and the expected metadata for every other graphic.
 
+### Project object-path correction
+
+Completed on 2026-09-22 after the graphics fix reached the final link but the
+linker could not find the seven Crown & Chaos project objects:
+
+- Restored Butano's standard relative `SOURCES := src` and
+  `INCLUDES := include` configuration. Butano's devkitARM make layer flattens
+  source names into objects in `build/`; absolute source paths broke that
+  source-to-object mapping even though discovery still listed the `.cpp` files.
+- Retained canonical project-root paths only for generated `GRAPHICS` and
+  `AUDIO`, which must remain discoverable during Butano's recursive build.
+- Repository validation now enforces this split: standard relative code paths
+  and stable absolute generated-asset paths.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.
