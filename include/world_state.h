@@ -21,7 +21,7 @@ namespace crown
         void update(const Input& input);
 
     private:
-        enum class UiMode { none, dialogue, start_menu };
+        enum class UiMode { none, dialogue, start_menu, starter_scene };
         void load_map(std::uint8_t map_id, int x, int y);
         void spawn_npcs();
         void update_movement(const Input& input);
@@ -30,6 +30,7 @@ namespace crown
         void advance_dialogue();
         void show_dialogue_page();
         void open_start_menu();
+        void show_starter_scene();
         void close_ui();
         void check_transition();
         void check_finale();
@@ -44,6 +45,7 @@ namespace crown
         bn::vector<bn::sprite_ptr, 5> _npcs;
         TextSprites _ui_sprites;
         bn::vector<bn::sprite_ptr, 4> _ui_panels;
+        bn::vector<bn::sprite_ptr, 2> _creature_sprites;
         std::uint8_t _map_id = 0;
         std::uint8_t _dialogue_id = 0;
         Direction _facing = Direction::down;
