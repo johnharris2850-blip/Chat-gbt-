@@ -40,6 +40,7 @@ GLYPHS = {
     "X": ("10001", "10001", "01010", "00100", "01010", "10001", "10001"),
     "Y": ("10001", "10001", "01010", "00100", "00100", "00100", "00100"),
     "Z": ("11111", "00001", "00010", "00100", "01000", "10000", "11111"),
+    "&": ("01100", "10010", "10100", "01000", "10101", "10010", "01101"),
 }
 
 
@@ -81,9 +82,9 @@ def bmp(width: int, height: int, pixels: bytes) -> bytes:
 def letters() -> bytes:
     # Butano sprite items are stacked vertically; `height` in letters.json is
     # the height of each item, not the height of a horizontal strip.
-    width, height = 16, 26 * 16
+    width, height = 16, 27 * 16
     pixels = bytearray(width * height * 4)
-    for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+    for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ&"):
         for row, bits in enumerate(GLYPHS[glyph]):
             for column, bit in enumerate(bits):
                 if bit == "1":
@@ -97,23 +98,42 @@ def letters() -> bytes:
 
 
 def markers() -> bytes:
-    width, height = 16, 14 * 16
+    """John has 4x3 walking frames, followed by three villagers and Candy."""
+    width, height = 16, 16 * 16
     pixels = bytearray(width * height * 4)
+    def pixel(frame, x, y, color):
+        offset = ((frame * 16 + y) * width + x) * 4
+        pixels[offset:offset + 4] = bytes(color)
     for frame in range(12):
-        for y in range(2, 14):
+        direction, step = frame // 3, frame % 3
+        for y in range(2, 7):
+            for x in range(4, 12):
+                pixel(frame, x, y, (55, 35, 25, 255) if y < 5 else (226, 178, 132, 255))
+        for y in range(7, 12):
             for x in range(3, 13):
-                border = x in (3, 12) or y in (2, 13)
-                foot_gap = y > 10 and ((frame % 3 == 1 and x < 8) or (frame % 3 == 2 and x > 8))
-                if not foot_gap:
-                    color = (232, 244, 255, 255) if border else (28, 112, 216, 255)
-                    offset = ((frame * 16 + y) * width + x) * 4
-                    pixels[offset:offset + 4] = bytes(color)
-    for frame, fill in ((12, (170, 70, 52, 255)), (13, (240, 196, 40, 255))):
-        for y in range(2, 14):
-            for x in range(2, 14):
-                color = (250, 245, 220, 255) if x in (2, 13) or y in (2, 13) else fill
-                offset = ((frame * 16 + y) * width + x) * 4
-                pixels[offset:offset + 4] = bytes(color)
+                pixel(frame, x, y, (42, 70, 116, 255) if x not in (3,12) else (208, 158, 70, 255))
+        for y in range(12, 15):
+            for x in range(4, 7):
+                if step != 2: pixel(frame, x - (1 if step == 1 else 0), y, (58, 42, 38, 255))
+            for x in range(9, 12):
+                if step != 1: pixel(frame, x + (1 if step == 2 else 0), y, (58, 42, 38, 255))
+        # Directional hair/profile details.
+        if direction == 1:
+            for x in range(5,11): pixel(frame,x,6,(55,35,25,255))
+        elif direction == 2: pixel(frame,4,6,(55,35,25,255))
+        elif direction == 3: pixel(frame,11,6,(55,35,25,255))
+    npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255)]
+    for index, clothes in enumerate(npc_colors):
+        frame = 12 + index
+        hair = (245,190,72,255) if index == 3 else ((92,65,44,255) if index else (205,205,190,255))
+        for y in range(2,6):
+            for x in range(4,12): pixel(frame,x,y,hair)
+        for y in range(6,9):
+            for x in range(5,11): pixel(frame,x,y,(232,184,142,255))
+        for y in range(9,14):
+            for x in range(3,13): pixel(frame,x,y,clothes)
+        if index == 3:
+            pixel(frame,3,5,hair); pixel(frame,12,5,hair); pixel(frame,2,6,hair); pixel(frame,13,6,hair)
     return bmp(width, height, bytes(pixels))
 
 
@@ -123,7 +143,7 @@ def ui_panel() -> bytes:
     for y in range(height):
         for x in range(width):
             border = x < 2 or x >= width - 2 or y < 2 or y >= height - 2
-            color = (220, 232, 245, 255) if border else (8, 18, 38, 255)
+            color = (232, 218, 170, 255) if border else (12, 22, 42, 255)
             offset = (y * width + x) * 4
             pixels[offset:offset + 4] = bytes(color)
     return bmp(width, height, bytes(pixels))
@@ -136,79 +156,118 @@ def rect_contains(rect: list[int], x: int, y: int) -> bool:
 def walkable(map_data: dict, x: int, y: int) -> bool:
     if x <= 0 or y <= 0 or x >= 31 or y >= 31:
         return False
-    if map_data["id"] == "starter_area":
-        return not rect_contains(map_data["water"], x, y) and not rect_contains(map_data["building"], x, y)
-    if not rect_contains(map_data["room"], x, y):
+    if "room" in map_data:
+        return rect_contains(map_data["room"], x, y) and not any(rect_contains(r,x,y) for r in map_data["furniture"])
+    if "water" in map_data and rect_contains(map_data["water"], x, y):
         return False
-    return not any(rect_contains(item, x, y) for item in map_data["furniture"])
+    return not any(rect_contains(r,x,y) for r in map_data.get("blocked", []))
+
+
+def put(pixels, x, y, color):
+    if 0 <= x < 256 and 0 <= y < 256:
+        offset = (y * 256 + x) * 4
+        pixels[offset:offset + 4] = bytes(color)
 
 
 def map_bmp(map_data: dict) -> bytes:
-    width = height = 256
-    pixels = bytearray(width * height * 4)
-    for py in range(height):
-        for px in range(width):
+    pixels = bytearray(256 * 256 * 4)
+    indoor = "room" in map_data
+    for py in range(256):
+        for px in range(256):
             tx, ty = px // 8, py // 8
-            if map_data["id"] == "starter_area":
-                color = (68, 146, 72, 255)
-                if any(rect_contains(path, tx, ty) for path in map_data["paths"]):
-                    color = (180, 150, 100, 255)
-                if rect_contains(map_data["water"], tx, ty):
-                    color = (42, 102 + (ty % 2) * 8, 182, 255)
-                if rect_contains(map_data["building"], tx, ty):
-                    color = (128, 74, 55, 255) if ty < 10 else (214, 194, 150, 255)
-                if (tx, ty) == (15, 14):
-                    color = (82, 48, 38, 255)
-                if tx in (0, 31) or ty in (0, 31):
-                    color = (28, 88, 42, 255)
-                if (tx + ty) % 7 == 0 and color == (68, 146, 72, 255):
-                    color = (76, 158, 78, 255)
+            if indoor:
+                color = (42,34,38,255)
+                if rect_contains(map_data["room"],tx,ty):
+                    color = (190,151,101,255) if (tx + ty) % 2 else (201,164,112,255)
+                if any(rect_contains(r,tx,ty) for r in map_data["furniture"]):
+                    color = (104,61,39,255)
+                if map_data["id"] == "bedroom" and 13 <= tx < 20 and 16 <= ty < 21:
+                    color = (122,47,55,255)  # rug
             else:
-                color = (38, 32, 40, 255)
-                if rect_contains(map_data["room"], tx, ty):
-                    color = (190, 158, 112, 255) if (tx + ty) % 2 else (202, 170, 120, 255)
-                if any(rect_contains(item, tx, ty) for item in map_data["furniture"]):
-                    color = (104, 62, 44, 255)
-                if (tx, ty) == (15, 27):
-                    color = (76, 48, 38, 255)
-            offset = (py * width + px) * 4
-            pixels[offset:offset + 4] = bytes(color)
-    return bmp(width, height, bytes(pixels))
+                color = (62,137,64,255)
+                if any(rect_contains(r,tx,ty) for r in map_data.get("paths",[])):
+                    color = (185,151,96,255) if (px + py) % 5 else (165,130,79,255)
+                if "water" in map_data and rect_contains(map_data["water"],tx,ty):
+                    color = (43,102 + (ty%2)*12,174,255)
+                if any(rect_contains(r,tx,ty) for r in map_data.get("blocked",[])):
+                    color = (35,91,43,255)
+            put(pixels,px,py,color)
+    # Detailed tile-scale furniture, buildings, trees, flowers, fences and signs.
+    if indoor:
+        # windows and door lintels
+        for x in range(112,144):
+            for y in range(48,56): put(pixels,x,y,(87,151,190,255))
+        for x in range(124,140):
+            for y in range(216,224): put(pixels,x,y,(72,43,31,255))
+    else:
+        for r in map_data.get("blocked",[]):
+            for tx in range(r[0],r[2]):
+                for ty in range(r[1],r[3]):
+                    if (tx+ty)%3 == 0:
+                        cx,cy=tx*8+4,ty*8+4
+                        for yy in range(-4,4):
+                            for xx in range(-4,4):
+                                if xx*xx+yy*yy < 16: put(pixels,cx+xx,cy+yy,(24,82,38,255))
+        if map_data["id"] == "crownhaven":
+            for building_index, r in enumerate(map_data["blocked"]):
+                for y in range(r[1]*8, r[3]*8):
+                    for x in range(r[0]*8, r[2]*8):
+                        roof_end = r[1]*8 + 18
+                        color = (104,48,43,255) if y < roof_end else (205,185,139,255)
+                        if building_index == 3:
+                            color = (70,67,92,255) if y < roof_end else (174,170,157,255)
+                        put(pixels,x,y,color)
+                center=(r[0]+r[2])*4
+                for y in range(r[3]*8-14,r[3]*8):
+                    for x in range(center-4,center+4): put(pixels,x,y,(75,45,31,255))
+                for x in (r[0]*8+10,r[2]*8-14):
+                    for y in range(r[3]*8-24,r[3]*8-17):
+                        for xx in range(x,x+5): put(pixels,xx,y,(77,137,176,255))
+        elif map_data["id"] == "old_road":
+            for tx,ty in ((14,12),(16,23),(24,9)):
+                for yy in range(8):
+                    for xx in range(10):
+                        if (xx-5)**2 + (yy-5)**2 < 24: put(pixels,tx*8+xx,ty*8+yy,(104,105,99,255))
+        for tx,ty in ((6,18),(16,18),(23,16),(28,20)):
+            for yy in range(2,6):
+                for xx in range(2,6): put(pixels,tx*8+xx,ty*8+yy,(235,205 if tx%2 else 90,90,255))
+        # wooden sign
+        for y in range(120,136):
+            for x in range(56,72): put(pixels,x,y,(119,72,39,255))
+    return bmp(256, 256, bytes(pixels))
+
+
+def title_bmp() -> bytes:
+    pixels=bytearray(256*256*4)
+    for y in range(256):
+        for x in range(256):
+            color=(10 + y//20,18 + y//14,42 + y//10,255)
+            put(pixels,x,y,color)
+    # moon, distant castle, crown silhouette and ornamental border
+    for y in range(20,76):
+        for x in range(170,226):
+            if (x-198)**2+(y-48)**2 < 750: put(pixels,x,y,(222,211,158,255))
+    for x in range(72,184):
+        for y in range(126,190):
+            if y > 170 or (80<x<101) or (116<x<140) or (155<x<177): put(pixels,x,y,(17,17,29,255))
+    for x in range(256):
+        for y in (2,3,252,253): put(pixels,x,y,(185,139,56,255))
+    return bmp(256,256,bytes(pixels))
 
 
 def world_header(maps: list[dict], dialogue: dict[str, list[list[str]]]) -> bytes:
-    rows: list[list[int]] = []
-    for map_data in maps:
-        rows.append([sum((1 << x) for x in range(32) if walkable(map_data, x, y)) for y in range(32)])
-    starter = maps[0]
-    npc_x, npc_y = starter["npc"]
-    secret_x, secret_y = starter["secret"]
-    lines = [
-        "#ifndef CROWN_GENERATED_WORLD_DATA_H", "#define CROWN_GENERATED_WORLD_DATA_H", "",
-        "#include <cstdint>", "", "namespace crown::generated", "{", "    constexpr int map_count = 2;",
-        f"    constexpr int elder_tile_x = {npc_x};", f"    constexpr int elder_tile_y = {npc_y};",
-        f"    constexpr int elder_x = {npc_x * 8 - 124};", f"    constexpr int elder_y = {npc_y * 8 - 124};",
-        f"    constexpr int secret_x = {secret_x * 8 - 124};", f"    constexpr int secret_y = {secret_y * 8 - 124};",
-        "    constexpr int home_spawn_x = -4;", "    constexpr int home_spawn_y = 76;",
-        "    constexpr int outside_spawn_x = -4;", "    constexpr int outside_spawn_y = -4;", "",
-        "    constexpr std::uint32_t collision[map_count][32] =",
-        "    {",
-    ]
+    rows=[[sum((1<<x) for x in range(32) if walkable(m,x,y)) for y in range(32)] for m in maps]
+    lines=["#ifndef CROWN_GENERATED_WORLD_DATA_H", "#define CROWN_GENERATED_WORLD_DATA_H", "", "#include <cstdint>", "", "namespace crown::generated", "{", f"    constexpr int map_count = {len(maps)};", "    constexpr std::uint32_t collision[map_count][32] =", "    {"]
     for map_rows in rows:
-        lines.append("        {")
-        lines.extend(f"            0x{row:08X}u," for row in map_rows)
-        lines.append("        },")
-    elder_pages = dialogue["elder_mara"]
-    lines += ["    };", "", f"    constexpr int elder_mara_page_count = {len(elder_pages)};",
-              "    constexpr const char* elder_mara_dialogue[elder_mara_page_count][3] =", "    {"]
-    for page in elder_pages:
-        padded_page = page + [""] * (3 - len(page))
-        lines.append("        { " + ", ".join(f'\"{line}\"' for line in padded_page) + " },")
-    lines += [
-        "    };", "", "    [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)", "    {",
-        "        return map_id >= 0 && map_id < map_count && x >= 0 && x < 32 && y >= 0 && y < 32 &&",
-        "               ((collision[map_id][y] >> x) & 1u) != 0;", "    }", "}", "", "#endif", "",
-    ]
+        lines += ["        {"] + [f"            0x{row:08X}u," for row in map_rows] + ["        },"]
+    lines += ["    };", ""]
+    for name,pages in dialogue.items():
+        lines += [f"    constexpr int {name}_page_count = {len(pages)};", f"    constexpr const char* {name}_dialogue[{name}_page_count][3] =", "    {"]
+        for page in pages:
+            page=(page+[""]*3)[:3]
+            lines.append("        { " + ", ".join(f'\"{line}\"' for line in page) + " },")
+        lines += ["    };", ""]
+    lines += ["    [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)", "    {", "        return map_id >= 0 && map_id < map_count && x >= 0 && x < 32 && y >= 0 && y < 32 &&", "               ((collision[map_id][y] >> x) & 1u) != 0;", "    }", "}", "", "#endif", ""]
     return "\n".join(lines).encode()
 
 
@@ -249,8 +308,9 @@ def main() -> int:
     valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
-    valid &= update(ROOT / "graphics/starter_area.bmp", map_bmp(maps[0]), args.check)
-    valid &= update(ROOT / "graphics/johns_home.bmp", map_bmp(maps[1]), args.check)
+    valid &= update(ROOT / "graphics/title.bmp", title_bmp(), args.check)
+    for map_data in maps:
+        valid &= update(ROOT / "graphics" / f"{map_data['id']}.bmp", map_bmp(map_data), args.check)
     valid &= update(ROOT / "include/generated/world_data.h", world_header(maps, dialogue), args.check)
     valid &= update(ROOT / "audio/interact.wav", interaction_wav(), args.check)
     return 0 if valid else 1

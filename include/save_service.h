@@ -15,8 +15,8 @@ namespace crown
         std::int16_t player_y = 20;
         std::uint8_t map_id = 0;
         std::uint8_t facing = 0;
-        std::uint8_t secret_discovered = 0;
-        std::uint8_t elder_spoken_to = 0;
+        std::uint8_t candy_spoken_to = 0;
+        std::uint8_t finale_seen = 0;
         std::uint8_t reserved[12] = {};
     };
 
@@ -27,7 +27,7 @@ namespace crown
     public:
         void initialize();
         void save_world(std::uint8_t map_id, std::int16_t player_x, std::int16_t player_y,
-                        std::uint8_t facing, bool secret_discovered, bool elder_spoken_to);
+                        std::uint8_t facing, bool candy_spoken_to, bool finale_seen);
 
         [[nodiscard]] const SaveData& data() const;
         [[nodiscard]] bool loaded_existing_save() const;

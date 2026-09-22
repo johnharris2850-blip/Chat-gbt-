@@ -1,238 +1,201 @@
 #include "world_state.h"
 
 #include "bn_algorithm.h"
-#include "bn_regular_bg_items_johns_home.h"
-#include "bn_regular_bg_items_starter_area.h"
+#include "bn_regular_bg_items_bedroom.h"
+#include "bn_regular_bg_items_house.h"
+#include "bn_regular_bg_items_crownhaven.h"
+#include "bn_regular_bg_items_old_road.h"
 #include "bn_sprite_items_markers.h"
 #include "bn_sprite_items_ui_panel.h"
-
 #include "generated/world_data.h"
+#include "npc.h"
 
 namespace
 {
     constexpr int map_half_size = 128;
-    // Collision uses John's feet rather than the full 16x16 placeholder sprite.
     constexpr int player_radius = 3;
-
-    [[nodiscard]] int tile_at(int pixel)
+    constexpr crown::Npc npcs[] =
     {
-        return (pixel + map_half_size) / 8;
-    }
+        { 2, 16, 15, 12, 0, false }, { 2, 21, 19, 13, 1, false },
+        { 2, 8, 20, 14, 2, false }, { 2, 27, 18, 15, 3, false },
+        { 3, 26, 18, 15, 4, true }
+    };
+
+    [[nodiscard]] int tile_at(int pixel) { return (pixel + map_half_size) / 8; }
+    [[nodiscard]] int pixel_at(int tile) { return tile * 8 - 124; }
 
     [[nodiscard]] bn::regular_bg_ptr create_background(std::uint8_t map_id)
     {
-        return map_id == 0 ? bn::regular_bg_items::starter_area.create_bg(0, 0) :
-                             bn::regular_bg_items::johns_home.create_bg(0, 0);
+        switch(map_id)
+        {
+        case 0: return bn::regular_bg_items::bedroom.create_bg(0, 0);
+        case 1: return bn::regular_bg_items::house.create_bg(0, 0);
+        case 2: return bn::regular_bg_items::crownhaven.create_bg(0, 0);
+        default: return bn::regular_bg_items::old_road.create_bg(0, 0);
+        }
+    }
+
+    void dialogue(std::uint8_t id, int page, const char* const*& lines, int& count)
+    {
+        switch(id)
+        {
+        case 0: lines = crown::generated::villager_1_dialogue[page]; count = crown::generated::villager_1_page_count; break;
+        case 1: lines = crown::generated::villager_2_dialogue[page]; count = crown::generated::villager_2_page_count; break;
+        case 2: lines = crown::generated::villager_3_dialogue[page]; count = crown::generated::villager_3_page_count; break;
+        case 3: lines = crown::generated::candy_dialogue[page]; count = crown::generated::candy_page_count; break;
+        default: lines = crown::generated::finale_dialogue[page]; count = crown::generated::finale_page_count; break;
+        }
     }
 }
 
 namespace crown
 {
     WorldState::WorldState(SaveService& save_service, AudioService& audio_service) :
-        _save_service(save_service),
-        _audio_service(audio_service),
-        _camera(bn::camera_ptr::create(0, 0)),
-        _background(create_background(save_service.data().map_id)),
-        _player(bn::sprite_items::markers.create_sprite(0, 0, 0))
+        _save_service(save_service), _audio_service(audio_service), _camera(bn::camera_ptr::create(0, 0)),
+        _background(create_background(0)), _player(bn::sprite_items::markers.create_sprite(0, 0, 0))
     {
         const SaveData& save = save_service.data();
-        _secret_discovered = save.secret_discovered;
-        _elder_spoken_to = save.elder_spoken_to;
+        _candy_spoken_to = save.candy_spoken_to;
+        _finale_seen = save.finale_seen;
         _facing = static_cast<Direction>(save.facing < 4 ? save.facing : 0);
-        load_map(save.map_id < generated::map_count ? save.map_id : 0, save.player_x, save.player_y);
+        const std::uint8_t map = save.map_id < generated::map_count ? save.map_id : 0;
+        load_map(map, save.player_x, save.player_y);
     }
 
     void WorldState::update(const Input& input)
     {
+        if(_shake_frames > 0)
+        {
+            --_shake_frames;
+            _camera.set_position(bn::clamp(_player_x, -8, 8) + ((_shake_frames & 2) ? 2 : -2), bn::clamp(_player_y, -48, 48));
+            if(_shake_frames == 0) show_dialogue_page();
+            return;
+        }
         if(_ui_mode != UiMode::none)
         {
-            if(input.cancel_pressed || (_ui_mode == UiMode::start_menu && input.start_pressed))
-            {
-                close_ui();
-            }
-            else if(input.action_pressed)
-            {
-                advance_dialogue();
-            }
+            if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
+            else if(input.action_pressed) advance_dialogue();
             return;
         }
         if(input.start_pressed) { open_start_menu(); return; }
         if(input.action_pressed) { try_interaction(); return; }
         update_movement(input);
         check_transition();
-        check_secret();
+        check_finale();
     }
 
     void WorldState::load_map(std::uint8_t map_id, int x, int y)
     {
-        _map_id = map_id;
-        _player_x = x;
-        _player_y = y;
-        _background = create_background(map_id);
-        _background.set_camera(_camera);
-        _player.set_camera(_camera);
-        _player.set_position(x, y);
-        _npc.reset();
-        _secret_marker.reset();
-        if(map_id == 0)
-        {
-            _npc = bn::sprite_items::markers.create_sprite(generated::elder_x, generated::elder_y, 12);
-            _npc->set_camera(_camera);
-            if(_secret_discovered)
-            {
-                _secret_marker = bn::sprite_items::markers.create_sprite(generated::secret_x, generated::secret_y, 13);
-                _secret_marker->set_camera(_camera);
-            }
-        }
+        _map_id = map_id; _player_x = x; _player_y = y;
+        _background = create_background(map_id); _background.set_camera(_camera);
+        _player.set_camera(_camera); _player.set_position(x, y);
+        spawn_npcs();
         _camera.set_position(bn::clamp(x, -8, 8), bn::clamp(y, -48, 48));
         persist();
     }
 
+    void WorldState::spawn_npcs()
+    {
+        _npcs.clear();
+        for(const Npc& npc : npcs)
+        {
+            if(npc.map_id == _map_id && (! npc.requires_objective || _candy_spoken_to))
+            {
+                _npcs.push_back(bn::sprite_items::markers.create_sprite(pixel_at(npc.tile_x), pixel_at(npc.tile_y), npc.sprite_index));
+                _npcs.back().set_camera(_camera);
+            }
+        }
+    }
+
     void WorldState::update_movement(const Input& input)
     {
-        int next_x = _player_x;
-        int next_y = _player_y;
-        if(input.left_held) { --next_x; _facing = Direction::left; }
-        else if(input.right_held) { ++next_x; _facing = Direction::right; }
-        else if(input.up_held) { --next_y; _facing = Direction::up; }
-        else if(input.down_held) { ++next_y; _facing = Direction::down; }
-
-        const bool moved = next_x != _player_x || next_y != _player_y;
-        if(moved && can_occupy(next_x, next_y))
-        {
-            _player_x = next_x;
-            _player_y = next_y;
-            _player.set_position(_player_x, _player_y);
-            _walk_frame = (_walk_frame + 1) % 24;
-        }
-        else if(! moved)
-        {
-            _walk_frame = 0;
-        }
-
-        const int direction_frame = static_cast<int>(_facing) * 3;
-        _player.set_tiles(bn::sprite_items::markers.tiles_item(), direction_frame + (_walk_frame / 8));
-        _camera.set_position(bn::clamp(_player_x, -8, 8), bn::clamp(_player_y, -48, 48));
+        int x = _player_x, y = _player_y;
+        if(input.left_held) { --x; _facing = Direction::left; }
+        else if(input.right_held) { ++x; _facing = Direction::right; }
+        else if(input.up_held) { --y; _facing = Direction::up; }
+        else if(input.down_held) { ++y; _facing = Direction::down; }
+        const bool moved = x != _player_x || y != _player_y;
+        if(moved && can_occupy(x,y)) { _player_x=x; _player_y=y; _player.set_position(x,y); _walk_frame=(_walk_frame+1)%24; }
+        else if(! moved) _walk_frame=0;
+        _player.set_tiles(bn::sprite_items::markers.tiles_item(), static_cast<int>(_facing)*3 + _walk_frame/8);
+        _camera.set_position(bn::clamp(_player_x,-8,8), bn::clamp(_player_y,-48,48));
     }
 
     bool WorldState::can_occupy(int x, int y) const
     {
-        const int left = tile_at(x - player_radius);
-        const int right = tile_at(x + player_radius);
-        const int top = tile_at(y - player_radius);
-        const int bottom = tile_at(y + player_radius);
-        if(! generated::walkable(_map_id, left, top) || ! generated::walkable(_map_id, right, top) ||
-           ! generated::walkable(_map_id, left, bottom) || ! generated::walkable(_map_id, right, bottom))
-        {
-            return false;
-        }
-        return ! (_map_id == 0 && tile_at(x) == generated::elder_tile_x && tile_at(y) == generated::elder_tile_y);
+        if(! generated::walkable(_map_id,tile_at(x-player_radius),tile_at(y-player_radius)) ||
+           ! generated::walkable(_map_id,tile_at(x+player_radius),tile_at(y-player_radius)) ||
+           ! generated::walkable(_map_id,tile_at(x-player_radius),tile_at(y+player_radius)) ||
+           ! generated::walkable(_map_id,tile_at(x+player_radius),tile_at(y+player_radius))) return false;
+        for(const Npc& npc : npcs)
+            if(npc.map_id == _map_id && (!npc.requires_objective || _candy_spoken_to) && tile_at(x)==npc.tile_x && tile_at(y)==npc.tile_y) return false;
+        return true;
     }
 
     void WorldState::try_interaction()
     {
-        int look_x = tile_at(_player_x);
-        int look_y = tile_at(_player_y);
-        if(_facing == Direction::left) --look_x;
-        else if(_facing == Direction::right) ++look_x;
-        else if(_facing == Direction::up) --look_y;
-        else ++look_y;
+        int x=tile_at(_player_x), y=tile_at(_player_y);
+        if(_facing==Direction::left) --x; else if(_facing==Direction::right) ++x; else if(_facing==Direction::up) --y; else ++y;
+        for(const Npc& npc : npcs)
+            if(npc.map_id==_map_id && x==npc.tile_x && y==npc.tile_y && (!npc.requires_objective || _candy_spoken_to)) { begin_dialogue(npc.dialogue_id); return; }
+    }
 
-        if(_map_id == 0 && look_x == generated::elder_tile_x && look_y == generated::elder_tile_y)
-        {
-            _elder_spoken_to = true;
-            _dialogue_page = 0;
-            _ui_mode = UiMode::dialogue;
-            _audio_service.play_interaction();
-            show_dialogue_page();
-            persist();
-        }
+    void WorldState::begin_dialogue(std::uint8_t id)
+    {
+        _dialogue_id=id; _dialogue_page=0; _ui_mode=UiMode::dialogue; _audio_service.play_interaction(); show_dialogue_page();
     }
 
     void WorldState::advance_dialogue()
     {
-        if(_ui_mode == UiMode::dialogue && _dialogue_page + 1 < generated::elder_mara_page_count)
+        const char* const* unused=nullptr; int count=0; dialogue(_dialogue_id,_dialogue_page,unused,count);
+        if(_dialogue_page+1<count)
         {
             ++_dialogue_page;
-            show_dialogue_page();
+            if(_dialogue_id==4 && _dialogue_page==2) { _shake_frames=32; _ui_sprites.clear(); }
+            else show_dialogue_page();
         }
         else
         {
-            close_ui();
+            if(_dialogue_id==3) { _candy_spoken_to=true; spawn_npcs(); }
+            if(_dialogue_id==4) _finale_seen=true;
+            close_ui(); persist();
         }
     }
 
     void WorldState::show_dialogue_page()
     {
-        _ui_sprites.clear();
-        _ui_panels.clear();
-        for(int index = 0; index < 4; ++index)
-        {
-            _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96 + index * 64, 48));
-        }
-        for(int line = 0; line < 3; ++line)
-        {
-            render_text(generated::elder_mara_dialogue[_dialogue_page][line], 0, 30 + line * 15, _ui_sprites);
-        }
+        _ui_sprites.clear(); _ui_panels.clear();
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        const char* const* lines=nullptr; int count=0; dialogue(_dialogue_id,_dialogue_page,lines,count);
+        for(int line=0;line<3;++line) render_text(lines[line],0,30+line*15,_ui_sprites);
     }
 
     void WorldState::open_start_menu()
     {
-        _ui_mode = UiMode::start_menu;
-        _ui_panels.clear();
-        for(int index = 0; index < 4; ++index)
-        {
-            _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96 + index * 64, 0));
-        }
-        render_text("JOHN", 0, -20, _ui_sprites);
-        render_text(_map_id == 0 ? "PILGRIMS REST" : "JOHNS HOME", 0, 0, _ui_sprites);
-        render_text(_secret_discovered ? "SECRET FOUND" : "SECRET UNKNOWN", 0, 20, _ui_sprites);
-        persist();
+        _ui_mode=UiMode::start_menu; _ui_panels.clear();
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,0));
+        constexpr const char* names[]={"JOHNS BEDROOM","JOHNS HOUSE","CROWNHAVEN","OLD ROAD"};
+        render_text("JOHN",0,-20,_ui_sprites); render_text(names[_map_id],0,0,_ui_sprites);
+        render_text(_candy_spoken_to ? "OLD ROAD OBJECTIVE" : "EXPLORE CROWNHAVEN",0,20,_ui_sprites); persist();
     }
-
-    void WorldState::close_ui()
-    {
-        _ui_sprites.clear();
-        _ui_panels.clear();
-        _ui_mode = UiMode::none;
-    }
+    void WorldState::close_ui() { _ui_sprites.clear(); _ui_panels.clear(); _ui_mode=UiMode::none; }
 
     void WorldState::check_transition()
     {
-        const int tile_x = tile_at(_player_x);
-        const int tile_y = tile_at(_player_y);
-        if(_map_id == 0 && tile_x == 15 && tile_y == 14)
-        {
-            load_map(1, generated::home_spawn_x, generated::home_spawn_y);
-        }
-        else if(_map_id == 1 && tile_x == 15 && tile_y == 27)
-        {
-            load_map(0, generated::outside_spawn_x, generated::outside_spawn_y);
-        }
+        const int x=tile_at(_player_x), y=tile_at(_player_y);
+        if(_map_id==0 && x==16 && y==27) load_map(1,pixel_at(16),pixel_at(8));
+        else if(_map_id==1 && x==16 && y==28) load_map(2,pixel_at(12),pixel_at(17));
+        else if(_map_id==2 && x==30 && y==18 && _candy_spoken_to) load_map(3,pixel_at(2),pixel_at(18));
+        else if(_map_id==3 && x==1 && y==18) load_map(2,pixel_at(29),pixel_at(18));
     }
 
-    void WorldState::check_secret()
+    void WorldState::check_finale()
     {
-        if(! _secret_discovered && _map_id == 0 && tile_at(_player_x) == 7 && tile_at(_player_y) == 21)
-        {
-            _secret_discovered = true;
-            _secret_marker = bn::sprite_items::markers.create_sprite(generated::secret_x, generated::secret_y, 13);
-            _secret_marker->set_camera(_camera);
-            _ui_mode = UiMode::discovery;
-            _audio_service.play_interaction();
-            for(int index = 0; index < 4; ++index)
-            {
-                _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96 + index * 64, 48));
-            }
-            render_text("SECRET DISCOVERED", 0, 42, _ui_sprites);
-            render_text("A CROWN IN STONE", 0, 58, _ui_sprites);
-            persist();
-        }
+        if(_map_id==3 && _candy_spoken_to && !_finale_seen && tile_at(_player_x)>=23) begin_dialogue(4);
     }
 
     void WorldState::persist()
     {
-        _save_service.save_world(_map_id, _player_x, _player_y, static_cast<std::uint8_t>(_facing),
-                                 _secret_discovered, _elder_spoken_to);
+        _save_service.save_world(_map_id,_player_x,_player_y,static_cast<std::uint8_t>(_facing),_candy_spoken_to,_finale_seen);
     }
 }

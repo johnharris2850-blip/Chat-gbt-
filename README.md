@@ -59,10 +59,11 @@ see the current milestone evidence and recommended next task in
 
 ### Bootstrap build
 
-The playable gray-box now contains an original title screen and starter area,
-four-direction John placeholder, animated walking, collision and camera, John's
-enterable home, Elder Mara dialogue, an interaction sound, a hidden garden secret,
-a START menu, and versioned world-state saving. Toolchain installation and build commands are documented in
+The first playable vertical slice contains an original fantasy title and six-page
+intro, John's furnished bedroom and house, the village of Crownhaven, and the Old
+Road finale. John and four distinct NPCs have original pixel sprites; movement,
+collision, interaction dialogue, an objective flag, screen shake, a START menu,
+and versioned world-state saving are all implemented. Toolchain installation and build commands are documented in
 [`docs/BUILDING.md`](docs/BUILDING.md). The expected local build output is
 `crown_and_chaos.gba`; build products remain intentionally untracked.
 All placeholder BMP and WAV inputs are also generated locally from tracked source

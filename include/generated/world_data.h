@@ -5,52 +5,109 @@
 
 namespace crown::generated
 {
-    constexpr int map_count = 2;
-    constexpr int elder_tile_x = 18;
-    constexpr int elder_tile_y = 16;
-    constexpr int elder_x = 20;
-    constexpr int elder_y = 4;
-    constexpr int secret_x = -68;
-    constexpr int secret_y = 44;
-    constexpr int home_spawn_x = -4;
-    constexpr int home_spawn_y = 76;
-    constexpr int outside_spawn_x = -4;
-    constexpr int outside_spawn_y = -4;
-
+    constexpr int map_count = 4;
     constexpr std::uint32_t collision[map_count][32] =
     {
         {
             0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x01FFFF80u,
+            0x01FFFF80u,
+            0x0187E080u,
+            0x0187E080u,
+            0x0187E080u,
+            0x01FFE080u,
+            0x01FFE080u,
+            0x01FFE080u,
+            0x011FE080u,
+            0x011FFF80u,
+            0x011FFF80u,
+            0x011FFF80u,
+            0x011FFF80u,
+            0x01FFFF80u,
+            0x01FFFF80u,
+            0x01FFF180u,
+            0x01FFF180u,
+            0x01FFF180u,
+            0x01FFFF80u,
+            0x01FFFF80u,
+            0x01FFFF80u,
+            0x01FFFF80u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+        },
+        {
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x060FE060u,
+            0x060FE060u,
+            0x060FE060u,
+            0x060FE060u,
+            0x060FFFE0u,
+            0x060FFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FF81E0u,
+            0x07FF81E0u,
+            0x078F81E0u,
+            0x078F81E0u,
+            0x078F81E0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x07FFFFE0u,
+            0x00000000u,
+            0x00000000u,
+            0x00000000u,
+        },
+        {
+            0x00000000u,
+            0x01FFFFFEu,
+            0x01FFFFFEu,
+            0x0101FE02u,
+            0x0101FE02u,
+            0x0101FE02u,
+            0x0101FE02u,
+            0x0101FE02u,
+            0x0101FE02u,
+            0x010183FEu,
+            0x01FF83FEu,
+            0x01FF83FEu,
+            0x01FF83FEu,
+            0x7FFF83FEu,
+            0x7FFF83FEu,
+            0x7FFF83FEu,
             0x7FFFFFFEu,
-            0x7FFFFE02u,
-            0x7FFFFE02u,
-            0x7FFFFE02u,
-            0x7FFFFE02u,
-            0x7FFFFE02u,
-            0x7FFFFE02u,
-            0x7FF80E02u,
-            0x7FF80E02u,
-            0x7FF80E02u,
-            0x7FF80E02u,
-            0x7FF80E02u,
-            0x7FF80E02u,
-            0x7FFFFE02u,
             0x7FFFFFFEu,
             0x7FFFFFFEu,
             0x7FFFFFFEu,
             0x7FFFFFFEu,
             0x7FFFFFFEu,
             0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
-            0x7FFFFFFEu,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7C03FF80u,
+            0x7FFFFF80u,
             0x00000000u,
         },
         {
@@ -61,27 +118,27 @@ namespace crown::generated
             0x00000000u,
             0x00000000u,
             0x00000000u,
+            0x7FFFFFFEu,
+            0x7FFFF0FEu,
+            0x7FFFF0FEu,
+            0x7FFFF0FEu,
+            0x7FFFF0FEu,
+            0x7FFFF0FEu,
+            0x7FFFF0FEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FFFFFFEu,
+            0x7FC3FFFEu,
+            0x7FC3FFFEu,
+            0x7FC3FFFEu,
+            0x7FC3FFFEu,
             0x00000000u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00C7C300u,
-            0x00C7C300u,
-            0x00C7FF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFF300u,
-            0x00FFF300u,
-            0x00FFF300u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
-            0x00FFFF00u,
+            0x00000000u,
+            0x00000000u,
             0x00000000u,
             0x00000000u,
             0x00000000u,
@@ -89,11 +146,42 @@ namespace crown::generated
         },
     };
 
-    constexpr int elder_mara_page_count = 2;
-    constexpr const char* elder_mara_dialogue[elder_mara_page_count][3] =
+    constexpr int villager_1_page_count = 1;
+    constexpr const char* villager_1_dialogue[villager_1_page_count][3] =
     {
-        { "GOOD MORNING JOHN", "THE HEADWATER PATH", "IS QUIET TODAY" },
-        { "LOOK BEYOND THE", "OLD GARDEN STONES", "SECRETS REWARD CARE" },
+        { "MORNING JOHN", "YOURE OUT EARLY", "" },
+    };
+
+    constexpr int villager_2_page_count = 2;
+    constexpr const char* villager_2_dialogue[villager_2_page_count][3] =
+    {
+        { "PEOPLE HAVE BEEN", "TALKING ABOUT STRANGE", "" },
+        { "LIGHTS BEYOND THE", "OLD ROAD", "" },
+    };
+
+    constexpr int villager_3_page_count = 1;
+    constexpr const char* villager_3_dialogue[villager_3_page_count][3] =
+    {
+        { "YOUR FRIEND CANDY", "WAS LOOKING FOR YOU", "" },
+    };
+
+    constexpr int candy_page_count = 5;
+    constexpr const char* candy_dialogue[candy_page_count][3] =
+    {
+        { "THERE YOU ARE", "", "" },
+        { "IVE BEEN WAITING", "FOR YOU", "" },
+        { "SOMETHING STRANGE", "HAPPENED NEAR THE", "OLD ROAD LAST NIGHT" },
+        { "WE SHOULD GO AND SEE", "WHATS GOING ON", "" },
+        { "OBJECTIVE", "MEET CANDY AT THE", "OLD ROAD" },
+    };
+
+    constexpr int finale_page_count = 4;
+    constexpr const char* finale_dialogue[finale_page_count][3] =
+    {
+        { "JOHN LOOK", "", "" },
+        { "THE GROUND IS", "SHAKING", "" },
+        { "SOMETHING IS COMING", "", "" },
+        { "CROWN & CHAOS", "TO BE CONTINUED", "" },
     };
 
     [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)

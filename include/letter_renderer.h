@@ -7,7 +7,8 @@
 
 namespace crown
 {
-    using TextSprites = bn::vector<bn::sprite_ptr, 48>;
+    // Three 23-character dialogue lines fit beneath the GBA's 128 OBJ limit.
+    using TextSprites = bn::vector<bn::sprite_ptr, 72>;
 
     void render_text(bn::string_view text, int center_x, int y, TextSprites& output);
 }

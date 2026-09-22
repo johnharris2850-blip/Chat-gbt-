@@ -5,7 +5,7 @@
 namespace
 {
     constexpr std::uint32_t save_magic = 0x434E5243; // "CRNC"
-    constexpr std::uint16_t save_version = 2;
+    constexpr std::uint16_t save_version = 3;
 
     [[nodiscard]] std::uint16_t checksum(const crown::SaveData& data)
     {
@@ -49,14 +49,14 @@ namespace crown
     }
 
     void SaveService::save_world(std::uint8_t map_id, std::int16_t player_x, std::int16_t player_y,
-                                 std::uint8_t facing, bool secret_discovered, bool elder_spoken_to)
+                                 std::uint8_t facing, bool candy_spoken_to, bool finale_seen)
     {
         _data.map_id = map_id;
         _data.player_x = player_x;
         _data.player_y = player_y;
         _data.facing = facing;
-        _data.secret_discovered = secret_discovered;
-        _data.elder_spoken_to = elder_spoken_to;
+        _data.candy_spoken_to = candy_spoken_to;
+        _data.finale_seen = finale_seen;
         write();
     }
 

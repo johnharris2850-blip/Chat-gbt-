@@ -20,9 +20,11 @@ def inside(rect: list[int], x: int, y: int) -> bool:
 def walkable(map_data: dict, x: int, y: int) -> bool:
     if x <= 0 or y <= 0 or x >= map_data["width"] - 1 or y >= map_data["height"] - 1:
         return False
-    if map_data["id"] == "starter_area":
-        return not inside(map_data["water"], x, y) and not inside(map_data["building"], x, y)
-    return inside(map_data["room"], x, y) and not any(inside(item, x, y) for item in map_data["furniture"])
+    if "room" in map_data:
+        return inside(map_data["room"], x, y) and not any(inside(item, x, y) for item in map_data["furniture"])
+    if "water" in map_data and inside(map_data["water"], x, y):
+        return False
+    return not any(inside(item, x, y) for item in map_data.get("blocked", []))
 
 
 def reachable(map_data: dict, start: tuple[int, int]) -> set[tuple[int, int]]:
@@ -59,33 +61,28 @@ class MapDataTests(unittest.TestCase):
                 target = by_id[transition["to"]]
                 self.assertTrue(walkable(target, *transition["spawn"]))
 
-    def test_npc_has_an_accessible_interaction_tile(self) -> None:
-        starter = MAPS[0]
-        visited = reachable(starter, tuple(starter["spawn"]))
-        x, y = starter["npc"]
-        self.assertTrue(any(tile in visited for tile in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1))))
+    def test_vertical_slice_contains_all_four_maps(self) -> None:
+        self.assertEqual([entry["id"] for entry in MAPS], ["bedroom", "house", "crownhaven", "old_road"])
 
 
 class DialogueDataTests(unittest.TestCase):
     def test_dialogue_has_multiple_nonempty_pages_that_fit(self) -> None:
-        self.assertGreaterEqual(len(DIALOGUE["elder_mara"]), 2)
+        self.assertGreaterEqual(len(DIALOGUE["candy"]), 5)
         for conversation in DIALOGUE.values():
             for page in conversation:
                 self.assertGreater(len(page), 0)
                 self.assertLessEqual(len(page), 3)
+                self.assertTrue(any(page))
                 for line in page:
-                    self.assertTrue(line)
-                    self.assertLessEqual(len(line), 20)
-                    self.assertRegex(line, r"^[A-Z ]+$")
+                    self.assertLessEqual(len(line), 23)
+                    self.assertRegex(line, r"^[A-Z &]*$")
 
-    def test_elder_dialogue_is_compiled_into_generated_world_data(self) -> None:
-        self.assertIn(
-            f"elder_mara_page_count = {len(DIALOGUE['elder_mara'])}",
-            GENERATED_WORLD,
-        )
-        for page in DIALOGUE["elder_mara"]:
-            for line in page:
-                self.assertIn(f'\"{line}\"', GENERATED_WORLD)
+    def test_all_dialogue_is_compiled_into_generated_world_data(self) -> None:
+        for name, conversation in DIALOGUE.items():
+            self.assertIn(f"{name}_page_count = {len(conversation)}", GENERATED_WORLD)
+            for page in conversation:
+                for line in page:
+                    self.assertIn(f'\"{line}\"', GENERATED_WORLD)
 
 
 class GeneratedGraphicsTests(unittest.TestCase):
@@ -98,8 +95,8 @@ class GeneratedGraphicsTests(unittest.TestCase):
             planes, bit_depth, compression = struct.unpack("<HHI", data[26:34])
             return width, height, planes, bit_depth if compression == 0 else -1
 
-        self.assertEqual(bmp_info(letters()), (16, 26 * 16, 1, 8))
-        self.assertEqual(bmp_info(markers()), (16, 14 * 16, 1, 8))
+        self.assertEqual(bmp_info(letters()), (16, 27 * 16, 1, 8))
+        self.assertEqual(bmp_info(markers()), (16, 16 * 16, 1, 8))
 
 
 if __name__ == "__main__":

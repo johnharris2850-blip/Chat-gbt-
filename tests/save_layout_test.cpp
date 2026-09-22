@@ -10,6 +10,6 @@ int main()
     assert(save.map_id == 0);
     assert(save.player_x == -4);
     assert(save.player_y == 20);
-    assert(save.secret_discovered == 0);
-    assert(save.elder_spoken_to == 0);
+    assert(save.candy_spoken_to == 0);
+    assert(save.finale_seen == 0);
 }

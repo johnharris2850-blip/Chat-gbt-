@@ -6,6 +6,7 @@ namespace crown
     enum class GameState
     {
         title,
+        intro,
         overworld
     };
 }

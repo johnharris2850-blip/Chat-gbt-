@@ -2,10 +2,9 @@
 #define CROWN_WORLD_STATE_H
 
 #include "bn_camera_ptr.h"
-#include "bn_optional.h"
 #include "bn_regular_bg_ptr.h"
 #include "bn_sprite_ptr.h"
-
+#include "bn_vector.h"
 #include "audio_service.h"
 #include "input.h"
 #include "letter_renderer.h"
@@ -22,17 +21,18 @@ namespace crown
         void update(const Input& input);
 
     private:
-        enum class UiMode { none, dialogue, start_menu, discovery };
-
+        enum class UiMode { none, dialogue, start_menu };
         void load_map(std::uint8_t map_id, int x, int y);
+        void spawn_npcs();
         void update_movement(const Input& input);
         void try_interaction();
+        void begin_dialogue(std::uint8_t dialogue_id);
         void advance_dialogue();
         void show_dialogue_page();
         void open_start_menu();
         void close_ui();
         void check_transition();
-        void check_secret();
+        void check_finale();
         void persist();
         [[nodiscard]] bool can_occupy(int x, int y) const;
 
@@ -41,19 +41,20 @@ namespace crown
         bn::camera_ptr _camera;
         bn::regular_bg_ptr _background;
         bn::sprite_ptr _player;
-        bn::optional<bn::sprite_ptr> _npc;
-        bn::optional<bn::sprite_ptr> _secret_marker;
+        bn::vector<bn::sprite_ptr, 5> _npcs;
         TextSprites _ui_sprites;
         bn::vector<bn::sprite_ptr, 4> _ui_panels;
         std::uint8_t _map_id = 0;
+        std::uint8_t _dialogue_id = 0;
         Direction _facing = Direction::down;
         UiMode _ui_mode = UiMode::none;
         int _player_x = 0;
         int _player_y = 0;
         int _walk_frame = 0;
         int _dialogue_page = 0;
-        bool _secret_discovered = false;
-        bool _elder_spoken_to = false;
+        int _shake_frames = 0;
+        bool _candy_spoken_to = false;
+        bool _finale_seen = false;
     };
 }
 
