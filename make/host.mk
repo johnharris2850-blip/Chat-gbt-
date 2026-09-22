@@ -12,4 +12,4 @@ verify:
 
 clean:
 	rm -rf build crown_and_chaos.elf crown_and_chaos.gba crown_and_chaos.map
-	rm -f graphics/*.png audio/*.wav
+	rm -f graphics/*.bmp graphics/*.png audio/*.wav

@@ -65,7 +65,7 @@ enterable home, Elder Mara dialogue, an interaction sound, a hidden garden secre
 a START menu, and versioned world-state saving. Toolchain installation and build commands are documented in
 [`docs/BUILDING.md`](docs/BUILDING.md). The expected local build output is
 `crown_and_chaos.gba`; build products remain intentionally untracked.
-All placeholder PNG and WAV inputs are also generated locally from tracked source
+All placeholder BMP and WAV inputs are also generated locally from tracked source
 code and JSON at build time, avoiding binary files in pull-request diffs.
 
 Quick repository-only checks, which do not require the GBA SDK:

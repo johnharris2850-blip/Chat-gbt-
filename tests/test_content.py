@@ -92,15 +92,14 @@ class GeneratedGraphicsTests(unittest.TestCase):
     def test_sprite_items_are_stacked_vertically_for_butano(self) -> None:
         from tools.generate_placeholder_assets import letters, markers
 
-        def png_info(data: bytes) -> tuple[int, int, int, int]:
-            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
-            width, height, bit_depth, color_type = struct.unpack(">IIBB", data[16:26])
-            self.assertIn(b"PLTE", data)
-            self.assertIn(b"tRNS", data)
-            return width, height, bit_depth, color_type
+        def bmp_info(data: bytes) -> tuple[int, int, int, int]:
+            self.assertEqual(data[:2], b"BM")
+            width, height = struct.unpack("<ii", data[18:26])
+            planes, bit_depth, compression = struct.unpack("<HHI", data[26:34])
+            return width, height, planes, bit_depth if compression == 0 else -1
 
-        self.assertEqual(png_info(letters()), (16, 26 * 16, 8, 3))
-        self.assertEqual(png_info(markers()), (16, 14 * 16, 8, 3))
+        self.assertEqual(bmp_info(letters()), (16, 26 * 16, 1, 8))
+        self.assertEqual(bmp_info(markers()), (16, 14 * 16, 1, 8))
 
 
 if __name__ == "__main__":

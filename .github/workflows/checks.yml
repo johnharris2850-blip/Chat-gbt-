@@ -108,7 +108,7 @@ jobs:
           printf 'Configured graphics directory: %s\n' "$(realpath -e graphics)"
           printf '%s\n' 'Graphics inputs presented to Butano:'
           find graphics -maxdepth 1 -type f -print | sort
-          test -f "$(realpath -e graphics)/letters.png"
+          test -f "$(realpath -e graphics)/letters.bmp"
           test -f "$(realpath -e graphics)/letters.json"
           if ! make -j1; then
             printf '%s\n' 'Build tree at failure:'

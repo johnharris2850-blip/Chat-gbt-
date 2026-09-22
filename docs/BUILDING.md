@@ -58,7 +58,7 @@ layout because Butano reinvokes that same absolute Makefile from the `build/`
 directory while compiling and linking. Generate assets before invoking the
 default build. Run `make -f make/host.mk clean` before a reproducibility build.
 `make -f make/host.mk assets` runs the deterministic generator before the default Butano build,
-creating the ignored `graphics/*.png` and `audio/*.wav` inputs from the tracked
+creating the ignored `graphics/*.bmp` and `audio/*.wav` inputs from the tracked
 Python and JSON sources. CI performs these two steps explicitly. These generated
 binaries must never be committed. `make -f make/host.mk clean`
 removes them along with the ROM and object output; `make -f make/host.mk verify` runs all host

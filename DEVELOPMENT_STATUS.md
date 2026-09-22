@@ -463,6 +463,22 @@ still did not yield Butano item headers:
 - After the real build, CI now requires all five expected Butano-generated item
   headers before accepting or uploading the ROM.
 
+### Indexed BMP import correction
+
+Completed on 2026-09-22 after the real Butano 18.1.0 build still skipped the
+indexed PNG inputs:
+
+- Replaced generated PNGs with uncompressed 8-bit indexed BMPs, the format
+  consumed by the pinned Butano/grit graphics import pipeline.
+- Each BMP contains a 256-entry deterministic BGR palette and bottom-up,
+  four-byte-aligned pixel rows. Palette index zero remains the transparent
+  sprite color by GBA convention.
+- The generator now emits `letters.bmp`, `markers.bmp`, `ui_panel.bmp`,
+  `starter_area.bmp`, and `johns_home.bmp`; matching JSON metadata is unchanged.
+- Repository checks and host tests validate the BMP signature, DIB layout,
+  planes, bit depth, compression, and sprite-sheet dimensions. CI requires all
+  five real Butano item headers after conversion.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

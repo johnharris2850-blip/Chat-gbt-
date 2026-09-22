@@ -10,7 +10,7 @@ external/
 build/generated/
 
 # Deterministic binary inputs emitted by tools/generate_placeholder_assets.py
-graphics/*.png
+graphics/*.bmp
 audio/*.wav
 
 # Local configuration and tooling

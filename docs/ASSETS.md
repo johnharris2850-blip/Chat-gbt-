@@ -6,7 +6,7 @@ non-assets in those directories: even a `README.md` is treated as an asset and
 causes Butano's converters to reject its filename.
 
 The tracked JSON files in `audio/` and `graphics/` are Butano metadata for the
-generated assets with the same stem. The generated PNG and WAV files are
+generated assets with the same stem. The generated BMP and WAV files are
 intentionally ignored by Git and are recreated deterministically by
 `tools/generate_placeholder_assets.py` before compilation. The JSON files in
 `data/` are authored JSON inputs consumed by the deterministic generator and

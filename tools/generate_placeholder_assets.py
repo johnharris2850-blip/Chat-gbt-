@@ -8,7 +8,6 @@ import json
 import math
 import struct
 import wave
-import zlib
 from pathlib import Path
 
 
@@ -44,11 +43,8 @@ GLYPHS = {
 }
 
 
-def png(width: int, height: int, pixels: bytes) -> bytes:
-    """Encode RGBA pixels as an 8-bit indexed PNG accepted by Butano/grit."""
-    def chunk(kind: bytes, payload: bytes) -> bytes:
-        return struct.pack(">I", len(payload)) + kind + payload + struct.pack(">I", zlib.crc32(kind + payload))
-
+def bmp(width: int, height: int, pixels: bytes) -> bytes:
+    """Encode RGBA pixels as an uncompressed 8-bit indexed BMP for grit."""
     palette: list[tuple[int, int, int, int]] = [(0, 0, 0, 0)]
     palette_indexes = {palette[0]: 0}
     indexed_pixels = bytearray(width * height)
@@ -59,22 +55,27 @@ def png(width: int, height: int, pixels: bytes) -> bytes:
         palette_index = palette_indexes.get(rgba)
         if palette_index is None:
             if len(palette) == 256:
-                raise ValueError("generated graphic exceeds the 256-color indexed PNG limit")
+                raise ValueError("generated graphic exceeds the 256-color indexed BMP limit")
             palette_index = len(palette)
             palette_indexes[rgba] = palette_index
             palette.append(rgba)
         indexed_pixels[pixel_index] = palette_index
 
-    scanlines = b"".join(
-        b"\0" + indexed_pixels[y * width:(y + 1) * width]
-        for y in range(height)
+    palette.extend([(0, 0, 0, 255)] * (256 - len(palette)))
+    palette_data = b"".join(bytes((blue, green, red, 0)) for red, green, blue, _alpha in palette)
+    row_stride = (width + 3) & ~3
+    padding = bytes(row_stride - width)
+    pixel_data = b"".join(
+        indexed_pixels[y * width:(y + 1) * width] + padding
+        for y in range(height - 1, -1, -1)
     )
-    palette_data = bytes(channel for color in palette for channel in color[:3])
-    transparency = bytes(color[3] for color in palette)
-    return (b"\x89PNG\r\n\x1a\n" +
-            chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 3, 0, 0, 0)) +
-            chunk(b"PLTE", palette_data) + chunk(b"tRNS", transparency) +
-            chunk(b"IDAT", zlib.compress(scanlines, 9)) + chunk(b"IEND", b""))
+    pixel_offset = 14 + 40 + len(palette_data)
+    file_size = pixel_offset + len(pixel_data)
+    file_header = b"BM" + struct.pack("<IHHI", file_size, 0, 0, pixel_offset)
+    dib_header = struct.pack(
+        "<IiiHHIIiiII", 40, width, height, 1, 8, 0, len(pixel_data), 2835, 2835, 256, 256
+    )
+    return file_header + dib_header + palette_data + pixel_data
 
 
 def letters() -> bytes:
@@ -92,7 +93,7 @@ def letters() -> bytes:
                             y = glyph_index * 16 + 1 + row * 2 + yy
                             offset = (y * width + x) * 4
                             pixels[offset:offset + 4] = bytes((240, 248, 255, 255))
-    return png(width, height, bytes(pixels))
+    return bmp(width, height, bytes(pixels))
 
 
 def markers() -> bytes:
@@ -113,7 +114,7 @@ def markers() -> bytes:
                 color = (250, 245, 220, 255) if x in (2, 13) or y in (2, 13) else fill
                 offset = ((frame * 16 + y) * width + x) * 4
                 pixels[offset:offset + 4] = bytes(color)
-    return png(width, height, bytes(pixels))
+    return bmp(width, height, bytes(pixels))
 
 
 def ui_panel() -> bytes:
@@ -125,7 +126,7 @@ def ui_panel() -> bytes:
             color = (220, 232, 245, 255) if border else (8, 18, 38, 255)
             offset = (y * width + x) * 4
             pixels[offset:offset + 4] = bytes(color)
-    return png(width, height, bytes(pixels))
+    return bmp(width, height, bytes(pixels))
 
 
 def rect_contains(rect: list[int], x: int, y: int) -> bool:
@@ -142,7 +143,7 @@ def walkable(map_data: dict, x: int, y: int) -> bool:
     return not any(rect_contains(item, x, y) for item in map_data["furniture"])
 
 
-def map_png(map_data: dict) -> bytes:
+def map_bmp(map_data: dict) -> bytes:
     width = height = 256
     pixels = bytearray(width * height * 4)
     for py in range(height):
@@ -172,7 +173,7 @@ def map_png(map_data: dict) -> bytes:
                     color = (76, 48, 38, 255)
             offset = (py * width + px) * 4
             pixels[offset:offset + 4] = bytes(color)
-    return png(width, height, bytes(pixels))
+    return bmp(width, height, bytes(pixels))
 
 
 def world_header(maps: list[dict], dialogue: dict[str, list[list[str]]]) -> bytes:
@@ -226,7 +227,7 @@ def interaction_wav() -> bytes:
 def update(path: Path, expected: bytes, check: bool) -> bool:
     # Binary build inputs are intentionally absent from Git. In check mode their
     # generators still execute, but only tracked text outputs are compared.
-    if check and path.suffix in {".png", ".wav"}:
+    if check and path.suffix in {".bmp", ".wav"}:
         return True
     if path.exists() and path.read_bytes() == expected:
         return True
@@ -243,13 +244,13 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true", help="fail instead of rewriting outdated files")
     args = parser.parse_args()
-    valid = update(ROOT / "graphics/letters.png", letters(), args.check)
-    valid &= update(ROOT / "graphics/markers.png", markers(), args.check)
-    valid &= update(ROOT / "graphics/ui_panel.png", ui_panel(), args.check)
+    valid = update(ROOT / "graphics/letters.bmp", letters(), args.check)
+    valid &= update(ROOT / "graphics/markers.bmp", markers(), args.check)
+    valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
-    valid &= update(ROOT / "graphics/starter_area.png", map_png(maps[0]), args.check)
-    valid &= update(ROOT / "graphics/johns_home.png", map_png(maps[1]), args.check)
+    valid &= update(ROOT / "graphics/starter_area.bmp", map_bmp(maps[0]), args.check)
+    valid &= update(ROOT / "graphics/johns_home.bmp", map_bmp(maps[1]), args.check)
     valid &= update(ROOT / "include/generated/world_data.h", world_header(maps, dialogue), args.check)
     valid &= update(ROOT / "audio/interact.wav", interaction_wav(), args.check)
     return 0 if valid else 1

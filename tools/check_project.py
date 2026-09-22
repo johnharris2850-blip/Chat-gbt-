@@ -22,7 +22,7 @@ def main() -> int:
     # with the source formats intentionally used by Crown & Chaos.
     required_asset_extensions = {
         "audio": {".json", ".wav"},
-        "graphics": {".json", ".png"},
+        "graphics": {".bmp", ".json"},
         "data": {".json"},
     }
     optional_asset_extensions = {
@@ -60,20 +60,20 @@ def main() -> int:
     if (ROOT / ".git/index").exists():
         import subprocess
         tracked = set(subprocess.check_output(["git", "ls-files"], cwd=ROOT, text=True).splitlines())
-    for pattern in ("graphics/*.png", "audio/*.wav"):
+    for pattern in ("graphics/*.bmp", "audio/*.wav"):
         for path in ROOT.glob(pattern):
             relative = path.relative_to(ROOT).as_posix()
             if relative in tracked:
                 errors.append(f"generated binary must not be tracked: {relative}")
 
-    for path in ROOT.glob("graphics/*.png"):
+    for path in ROOT.glob("graphics/*.bmp"):
         data = path.read_bytes()
-        if len(data) < 29 or data[:8] != b"\x89PNG\r\n\x1a\n":
-            errors.append(f"invalid generated PNG: {path.relative_to(ROOT)}")
+        if len(data) < 1078 or data[:2] != b"BM":
+            errors.append(f"invalid generated BMP: {path.relative_to(ROOT)}")
             continue
-        bit_depth, color_type = struct.unpack(">BB", data[24:26])
-        if (bit_depth, color_type) != (8, 3) or b"PLTE" not in data:
-            errors.append(f"Butano graphic must be an 8-bit indexed PNG: {path.relative_to(ROOT)}")
+        dib_size, planes, bit_depth, compression = struct.unpack("<I8xHHI", data[14:34])
+        if dib_size != 40 or planes != 1 or bit_depth != 8 or compression != 0:
+            errors.append(f"Butano graphic must be an uncompressed 8-bit indexed BMP: {path.relative_to(ROOT)}")
 
     for path in ROOT.rglob("*.json"):
         try:
