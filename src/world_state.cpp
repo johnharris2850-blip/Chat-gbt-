@@ -59,7 +59,6 @@ namespace crown
         _save_service(save_service), _audio_service(audio_service), _camera(bn::camera_ptr::create(0, 0)),
         _background(create_background(0)), _player(bn::sprite_items::markers.create_sprite(0, 0, 0))
     {
-        const SaveData& save = save_service.data();
         // Build 2 changes the progression flow substantially. Start every boot at
         // the bedroom checkpoint for now so stale emulator SRAM cannot drop a test
         // build directly into Old Road/battle content.
