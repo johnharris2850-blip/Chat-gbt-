@@ -215,10 +215,11 @@ namespace crown
     {
         _ui_mode=UiMode::party; _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
         _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-64,-12,0));
+        if(_eevee_met) _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(64,-12,2));
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
-        render_text("JOHNS PARTY",0,24,_ui_sprites);
-        render_text(_tideling_level > 5 ? "TIDELING LV 6" : "TIDELING LV 5",0,39,_ui_sprites);
-        render_text(_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20",0,54,_ui_sprites);
+        render_text("JOHNS PARTY",0,18,_ui_sprites);
+        render_text(_tideling_level > 5 ? "TIDELING LV 6" : "TIDELING LV 5",0,34,_ui_sprites);
+        render_text(_eevee_met ? "EEVEE MYSTERY PARTNER" : (_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20"),0,50,_ui_sprites);
     }
 
     void WorldState::start_first_battle()
@@ -299,6 +300,7 @@ namespace crown
             render_text("A STRANGE EEVEE",0,22,_ui_sprites);
             render_text("WATCHES FROM THE PATH",0,37,_ui_sprites);
             render_text("THEN FOLLOWS JOHN",0,52,_ui_sprites);
+            _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(0,-24,2));
             return;
         }
         if(_map_id==3 && _candy_spoken_to && !_finale_seen && tile_at(_player_x)>=23) begin_dialogue(4);
