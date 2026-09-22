@@ -259,15 +259,15 @@ namespace crown
             render_text("PRESS A",0,52,_ui_sprites);
             return;
         }
-        render_text(_battle_eevee ? "EEVEE VS THORNLET" : "TIDELING VS THORNLET",0,8,_ui_sprites);
+        // Keep battle text deliberately compact: the GBA has only 128 OBJ entries
+        // and each glyph currently consumes one sprite.
         constexpr const char* tideling_moves[]={"TIDE TACKLE","BUBBLE BURST","BRACE","LITTLE ROAR"};
         constexpr const char* eevee_moves[]={"STAR DASH","GUIDING LIGHT","QUICK STEP","WATCHFUL EYES"};
-        render_text(_battle_move == 0 ? "> MOVE 1" : "MOVE 1", -55,26,_ui_sprites);
-        render_text(_battle_move == 1 ? "> MOVE 2" : "MOVE 2", 55,26,_ui_sprites);
-        render_text(_battle_move == 2 ? "> MOVE 3" : "MOVE 3", -55,40,_ui_sprites);
-        render_text(_battle_move == 3 ? "> MOVE 4" : "MOVE 4", 55,40,_ui_sprites);
-        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,54,_ui_sprites);
-        render_text(_eevee_met ? "A USE B SWITCH" : "A USE MOVE",0,68,_ui_sprites);
+        render_text(_battle_eevee ? "EEVEE" : "TIDELING",-72,18,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "FOE HP LOW" : "FOE THORNLET",62,18,_ui_sprites);
+        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,38,_ui_sprites);
+        render_text(_battle_move < 2 ? "LEFT RIGHT" : "UP DOWN",0,54,_ui_sprites);
+        render_text(_eevee_met ? "A USE B SWITCH" : "A USE",0,68,_ui_sprites);
     }
 
     void WorldState::choose_battle_move(const Input&)
