@@ -332,6 +332,19 @@ Completed on 2026-09-22:
 - The existing, separately verified Butano checkout remains registered by its
   canonical dependency path; no global wildcard trust is used.
 
+### Authored JSON build-input correction
+
+Completed on 2026-09-22 after the real linker build tried to create the
+unsupported target `dialogue.json.o`:
+
+- Removed `DATA := data` from the Butano Makefile. The directory contains
+  authored JSON source data, not binary files for Butano's `DATA` pipeline.
+- Dialogue JSON is now compiled into the generated C++ world-data header and the
+  dialogue UI reads Elder Mara's pages from that generated data rather than a
+  duplicate hard-coded script.
+- Repository validation rejects reintroducing a Butano `DATA` assignment for
+  the authored JSON directory.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

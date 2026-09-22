@@ -9,7 +9,9 @@ The tracked JSON files in `audio/` and `graphics/` are Butano metadata for the
 generated assets with the same stem. The generated PNG and WAV files are
 intentionally ignored by Git and are recreated deterministically by
 `tools/generate_placeholder_assets.py` before compilation. The JSON files in
-`data/` are project data inputs. DMG audio is not currently configured; a future
+`data/` are authored JSON inputs consumed by the deterministic generator and
+host tests; they are not passed to Butano's binary `DATA` pipeline. DMG audio is
+not currently configured; a future
 `dmg_audio/` directory is optional and must contain only valid Butano DMG-audio
 assets if the build enables it.
 

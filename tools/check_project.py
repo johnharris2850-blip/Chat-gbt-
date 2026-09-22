@@ -90,6 +90,10 @@ def main() -> int:
             if fragment not in text:
                 errors.append(f"{filename} is missing required fragment: {fragment}")
 
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    if re.search(r"^DATA\s*:?=", makefile, re.MULTILINE):
+        errors.append("Makefile must not pass authored JSON sources through Butano DATA")
+
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1

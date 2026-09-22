@@ -151,7 +151,7 @@ namespace crown
 
     void WorldState::advance_dialogue()
     {
-        if(_ui_mode == UiMode::dialogue && _dialogue_page == 0)
+        if(_ui_mode == UiMode::dialogue && _dialogue_page + 1 < generated::elder_mara_page_count)
         {
             ++_dialogue_page;
             show_dialogue_page();
@@ -170,17 +170,9 @@ namespace crown
         {
             _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96 + index * 64, 48));
         }
-        if(_dialogue_page == 0)
+        for(int line = 0; line < 3; ++line)
         {
-            render_text("GOOD MORNING JOHN", 0, 30, _ui_sprites);
-            render_text("THE PATH IS QUIET", 0, 45, _ui_sprites);
-            render_text("TODAY", 0, 60, _ui_sprites);
-        }
-        else
-        {
-            render_text("LOOK BEYOND THE", 0, 30, _ui_sprites);
-            render_text("OLD GARDEN STONES", 0, 45, _ui_sprites);
-            render_text("SECRETS REWARD CARE", 0, 60, _ui_sprites);
+            render_text(generated::elder_mara_dialogue[_dialogue_page][line], 0, 30 + line * 15, _ui_sprites);
         }
     }
 

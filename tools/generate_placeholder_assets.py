@@ -148,7 +148,7 @@ def map_png(map_data: dict) -> bytes:
     return png(width, height, bytes(pixels))
 
 
-def world_header(maps: list[dict]) -> bytes:
+def world_header(maps: list[dict], dialogue: dict[str, list[list[str]]]) -> bytes:
     rows: list[list[int]] = []
     for map_data in maps:
         rows.append([sum((1 << x) for x in range(32) if walkable(map_data, x, y)) for y in range(32)])
@@ -170,6 +170,12 @@ def world_header(maps: list[dict]) -> bytes:
         lines.append("        {")
         lines.extend(f"            0x{row:08X}u," for row in map_rows)
         lines.append("        },")
+    elder_pages = dialogue["elder_mara"]
+    lines += ["    };", "", f"    constexpr int elder_mara_page_count = {len(elder_pages)};",
+              "    constexpr const char* elder_mara_dialogue[elder_mara_page_count][3] =", "    {"]
+    for page in elder_pages:
+        padded_page = page + [""] * (3 - len(page))
+        lines.append("        { " + ", ".join(f'\"{line}\"' for line in padded_page) + " },")
     lines += [
         "    };", "", "    [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)", "    {",
         "        return map_id >= 0 && map_id < map_count && x >= 0 && x < 32 && y >= 0 && y < 32 &&",
@@ -214,9 +220,10 @@ def main() -> int:
     valid &= update(ROOT / "graphics/markers.png", markers(), args.check)
     valid &= update(ROOT / "graphics/ui_panel.png", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
+    dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
     valid &= update(ROOT / "graphics/starter_area.png", map_png(maps[0]), args.check)
     valid &= update(ROOT / "graphics/johns_home.png", map_png(maps[1]), args.check)
-    valid &= update(ROOT / "include/generated/world_data.h", world_header(maps), args.check)
+    valid &= update(ROOT / "include/generated/world_data.h", world_header(maps, dialogue), args.check)
     valid &= update(ROOT / "audio/interact.wav", interaction_wav(), args.check)
     return 0 if valid else 1
 

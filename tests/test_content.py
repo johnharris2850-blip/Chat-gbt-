@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MAPS = json.loads((ROOT / "data/maps.json").read_text(encoding="utf-8"))["maps"]
 DIALOGUE = json.loads((ROOT / "data/dialogue.json").read_text(encoding="utf-8"))
+GENERATED_WORLD = (ROOT / "include/generated/world_data.h").read_text(encoding="utf-8")
 
 
 def inside(rect: list[int], x: int, y: int) -> bool:
@@ -75,6 +76,15 @@ class DialogueDataTests(unittest.TestCase):
                     self.assertTrue(line)
                     self.assertLessEqual(len(line), 20)
                     self.assertRegex(line, r"^[A-Z ]+$")
+
+    def test_elder_dialogue_is_compiled_into_generated_world_data(self) -> None:
+        self.assertIn(
+            f"elder_mara_page_count = {len(DIALOGUE['elder_mara'])}",
+            GENERATED_WORLD,
+        )
+        for page in DIALOGUE["elder_mara"]:
+            for line in page:
+                self.assertIn(f'\"{line}\"', GENERATED_WORLD)
 
 
 if __name__ == "__main__":

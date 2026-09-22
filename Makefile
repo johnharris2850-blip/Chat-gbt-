@@ -29,7 +29,6 @@ TARGET      := crown_and_chaos
 BUILD       := build
 SOURCES     := src
 INCLUDES    := include
-DATA        := data
 GRAPHICS    := graphics
 AUDIO       := audio
 

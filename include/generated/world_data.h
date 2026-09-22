@@ -89,6 +89,13 @@ namespace crown::generated
         },
     };
 
+    constexpr int elder_mara_page_count = 2;
+    constexpr const char* elder_mara_dialogue[elder_mara_page_count][3] =
+    {
+        { "GOOD MORNING JOHN", "THE HEADWATER PATH", "IS QUIET TODAY" },
+        { "LOOK BEYOND THE", "OLD GARDEN STONES", "SECRETS REWARD CARE" },
+    };
+
     [[nodiscard]] constexpr bool walkable(int map_id, int x, int y)
     {
         return map_id >= 0 && map_id < map_count && x >= 0 && x < 32 && y >= 0 && y < 32 &&
