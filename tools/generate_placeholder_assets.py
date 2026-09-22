@@ -226,7 +226,7 @@ def eevee() -> bytes:
     for x in range(11,14): p(x,26,outline)
     for x in range(19,22): p(x,26,outline)
     # Eevee's unmistakable blue eyes are an early visual clue that he is unusual.
-    eye_blue=(67,159,224,255)
+    eye_blue=(64,160,224,255)
     p(13,10,eye_blue); p(19,10,eye_blue); p(13,9,shine); p(19,9,shine)
     p(16,13,dark)
     # A strange white diamond-like fur marking hints at his hidden heavenly purpose.
