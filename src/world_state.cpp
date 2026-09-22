@@ -239,7 +239,7 @@ namespace crown
 
     void WorldState::start_first_battle()
     {
-        _tideling_hp=20; _wild_hp=16; _battle_turn=0; _battle_move=0; _battle_eevee=false; _ui_mode=UiMode::battle; show_battle();
+        _tideling_hp=20; _eevee_hp=20; _wild_hp=16; _battle_turn=0; _battle_move=0; _battle_result=false; _battle_victory=false; _battle_eevee=false; _ui_mode=UiMode::battle; show_battle();
     }
 
     void WorldState::show_battle()
@@ -249,10 +249,17 @@ namespace crown
         else _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-58,10,0));
         _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(58,-28,2));
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        if(_battle_result)
+        {
+            render_text(_battle_victory ? "BATTLE WON" : "BATTLE LOST",0,18,_ui_sprites);
+            render_text(_battle_victory ? "EXP EARNED 12" : "PARTY RESTORED",0,34,_ui_sprites);
+            render_text("PRESS A",0,52,_ui_sprites);
+            return;
+        }
         render_text(_battle_eevee ? "EEVEE VS THORNLET" : "TIDELING VS THORNLET",0,18,_ui_sprites);
         render_text(_battle_eevee ? (_battle_move == 0 ? "STAR DASH" : "GUIDING LIGHT") : (_battle_move == 0 ? "TIDE TACKLE" : "BUBBLE BURST"),0,32,_ui_sprites);
-        render_text(_battle_move == 0 ? "LEFT RIGHT SELECT" : "A CONFIRM MOVE",0,46,_ui_sprites);
-        render_text(_wild_hp <= 5 ? "THORNLET IS WEAK" : ((_battle_eevee ? _eevee_hp : _tideling_hp) <= 8 ? "PARTNER HP LOW" : (_eevee_met ? "B SWITCH PARTNER" : "BATTLE READY")),0,60,_ui_sprites);
+        render_text(_battle_eevee ? (_eevee_hp > 9 ? "EEVEE HP 20" : "EEVEE HP LOW") : (_tideling_hp > 9 ? "TIDELING HP 20" : "TIDELING HP LOW"),0,46,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "THORNLET HP LOW" : (_eevee_met ? "B SWITCH PARTNER" : "A USE MOVE"),0,60,_ui_sprites);
     }
 
     void WorldState::choose_battle_move(const Input&)
@@ -271,16 +278,18 @@ namespace crown
                 _tideling_exp += 12;
                 if(_tideling_exp >= 10) { _tideling_exp -= 10; ++_tideling_level; }
             }
-            close_ui();
             _first_battle_seen=true;
+            _battle_result=true;
+            _battle_victory=true;
+            show_battle();
             return;
         }
         if(_battle_eevee) _eevee_hp -= 3; else _tideling_hp -= 3;
         if((_battle_eevee ? _eevee_hp : _tideling_hp) <= 0)
         {
             _tideling_hp=20; _eevee_hp=20;
-            _wild_hp=16;
-            _battle_turn=0;
+            _battle_result=true;
+            _battle_victory=false;
         }
         show_battle();
     }
