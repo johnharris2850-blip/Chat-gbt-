@@ -187,6 +187,37 @@ def starters() -> bytes:
     return bmp(width, height, bytes(pixels))
 
 
+
+def eevee() -> bytes:
+    """Original 32x32 in-game sprite for John's mysterious Eevee companion."""
+    width = height = 32
+    pixels = bytearray(width * height * 4)
+
+    def p(x, y, color):
+        if 0 <= x < width and 0 <= y < height:
+            offset = (y * width + x) * 4
+            pixels[offset:offset + 4] = bytes(color)
+
+    def blob(cx, cy, rx, ry, color):
+        for y in range(cy - ry, cy + ry + 1):
+            for x in range(cx - rx, cx + rx + 1):
+                if ((x-cx)*(x-cx)*ry*ry + (y-cy)*(y-cy)*rx*rx) <= rx*rx*ry*ry:
+                    p(x,y,color)
+
+    outline=(67,45,34,255); brown=(174,112,62,255); light=(226,177,105,255)
+    cream=(244,224,174,255); dark=(31,28,31,255); shine=(244,248,235,255)
+    blob(16,18,8,8,outline); blob(16,17,7,7,brown)
+    blob(16,11,6,6,outline); blob(16,11,5,5,light)
+    for x,y in ((11,5),(10,3),(9,1),(21,5),(22,3),(23,1)):
+        blob(x,y,1,3,outline)
+    blob(16,19,6,3,cream)
+    blob(25,19,5,4,outline); blob(26,18,4,3,light); blob(29,16,2,2,cream)
+    for x in range(11,14): p(x,26,outline)
+    for x in range(19,22): p(x,26,outline)
+    p(13,10,dark); p(19,10,dark); p(13,9,shine); p(19,9,shine)
+    p(16,13,dark)
+    return bmp(width, height, bytes(pixels))
+
 def ui_panel() -> bytes:
     width = height = 64
     pixels = bytearray(width * height * 4)
@@ -355,7 +386,7 @@ def main() -> int:
     args = parser.parse_args()
     valid = update(ROOT / "graphics/letters.bmp", letters(), args.check)
     valid &= update(ROOT / "graphics/markers.bmp", markers(), args.check)
-    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)
+    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)\n    valid &= update(ROOT / "graphics/eevee.bmp", eevee(), args.check)
     valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
