@@ -98,8 +98,8 @@ def letters() -> bytes:
 
 
 def markers() -> bytes:
-    """John has 4x3 walking frames, followed by three villagers and Candy."""
-    width, height = 16, 16 * 16
+    """John has 4x3 walking frames, followed by three villagers, Candy and Jexi."""
+    width, height = 16, 17 * 16
     pixels = bytearray(width * height * 4)
     def pixel(frame, x, y, color):
         offset = ((frame * 16 + y) * width + x) * 4
@@ -122,10 +122,10 @@ def markers() -> bytes:
             for x in range(5,11): pixel(frame,x,6,(55,35,25,255))
         elif direction == 2: pixel(frame,4,6,(55,35,25,255))
         elif direction == 3: pixel(frame,11,6,(55,35,25,255))
-    npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255)]
+    npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255),(65,108,168,255)]
     for index, clothes in enumerate(npc_colors):
         frame = 12 + index
-        hair = (245,190,72,255) if index == 3 else ((92,65,44,255) if index else (205,205,190,255))
+        hair = (245,190,72,255) if index == 3 else ((45,34,55,255) if index == 4 else ((92,65,44,255) if index else (205,205,190,255)))
         for y in range(2,6):
             for x in range(4,12): pixel(frame,x,y,hair)
         for y in range(6,9):
@@ -134,6 +134,11 @@ def markers() -> bytes:
             for x in range(3,13): pixel(frame,x,y,clothes)
         if index == 3:
             pixel(frame,3,5,hair); pixel(frame,12,5,hair); pixel(frame,2,6,hair); pixel(frame,13,6,hair)
+        if index == 4:
+            # Jexi: Professor's assistant, dark hair and a light research coat.
+            for y in range(9,13):
+                pixel(frame,3,y,(225,232,236,255)); pixel(frame,12,y,(225,232,236,255))
+            pixel(frame,5,7,(70,145,205,255)); pixel(frame,10,7,(70,145,205,255))
     return bmp(width, height, bytes(pixels))
 
 
