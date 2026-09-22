@@ -75,6 +75,12 @@ namespace crown
             if(_shake_frames == 0) show_dialogue_page();
             return;
         }
+        if(_ui_mode == UiMode::battle && (input.left_held || input.right_held))
+        {
+            _battle_move = 1 - _battle_move;
+            show_battle();
+            return;
+        }
         if(_ui_mode != UiMode::none)
         {
             if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
@@ -82,23 +88,7 @@ namespace crown
             {
                 if(_ui_mode == UiMode::starter_scene) close_ui();
                 else if(_ui_mode == UiMode::party) close_ui();
-                else if(_ui_mode == UiMode::battle)
-                {
-                    ++_battle_turn;
-                    const int damage = (_battle_turn % 2) ? 6 : 4;
-                    _wild_hp -= damage;
-                    if(_wild_hp <= 0)
-                    {
-                        close_ui();
-                        _first_battle_seen=true;
-                    }
-                    else
-                    {
-                        _tideling_hp -= 3;
-                        if(_tideling_hp < 0) _tideling_hp=0;
-                        show_battle();
-                    }
-                }
+                else if(_ui_mode == UiMode::battle) choose_battle_move(input)
                 else advance_dialogue();
             }
             return;
@@ -227,13 +217,13 @@ namespace crown
         _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-64,-12,0));
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
         render_text("JOHNS PARTY",0,24,_ui_sprites);
-        render_text("TIDELING LV 5",0,39,_ui_sprites);
-        render_text("HP 20 20",0,54,_ui_sprites);
+        render_text(_tideling_level > 5 ? "TIDELING LV 6" : "TIDELING LV 5",0,39,_ui_sprites);
+        render_text(_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20",0,54,_ui_sprites);
     }
 
     void WorldState::start_first_battle()
     {
-        _tideling_hp=20; _wild_hp=16; _battle_turn=0; _ui_mode=UiMode::battle; show_battle();
+        _tideling_hp=20; _wild_hp=16; _battle_turn=0; _battle_move=0; _ui_mode=UiMode::battle; show_battle();
     }
 
     void WorldState::show_battle()
@@ -243,9 +233,35 @@ namespace crown
         _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(58,-28,2));
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
         render_text("TIDELING VS THORNLET",0,18,_ui_sprites);
-        render_text(_battle_turn % 2 ? "BUBBLE BURST" : "TIDE TACKLE",0,32,_ui_sprites);
-        render_text(_wild_hp <= 5 ? "THORNLET IS WEAK" : "A USE MOVE",0,46,_ui_sprites);
-        render_text(_tideling_hp <= 8 ? "TIDELING HP LOW" : "TIDELING READY",0,60,_ui_sprites);
+        render_text(_battle_move == 0 ? "TIDE TACKLE" : "BUBBLE BURST",0,32,_ui_sprites);
+        render_text(_battle_move == 0 ? "LEFT RIGHT SELECT" : "A CONFIRM MOVE",0,46,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "THORNLET IS WEAK" : (_tideling_hp <= 8 ? "TIDELING HP LOW" : "BATTLE READY"),0,60,_ui_sprites);
+    }
+
+    void WorldState::choose_battle_move(const Input&)
+    {
+        ++_battle_turn;
+        _wild_hp -= _battle_move == 0 ? 4 : 6;
+        if(_wild_hp <= 0)
+        {
+            _tideling_exp += 12;
+            if(_tideling_exp >= 10)
+            {
+                _tideling_exp -= 10;
+                ++_tideling_level;
+            }
+            close_ui();
+            _first_battle_seen=true;
+            return;
+        }
+        _tideling_hp -= 3;
+        if(_tideling_hp <= 0)
+        {
+            _tideling_hp=20;
+            _wild_hp=16;
+            _battle_turn=0;
+        }
+        show_battle();
     }
 
     void WorldState::open_start_menu()
