@@ -34,6 +34,7 @@ namespace crown
         void show_party();
         void start_first_battle();
         void show_battle();
+        void choose_battle_move(const Input& input);
         void close_ui();
         void check_transition();
         void check_finale();
@@ -64,6 +65,9 @@ namespace crown
         int _tideling_hp = 20;
         int _wild_hp = 16;
         int _battle_turn = 0;
+        int _battle_move = 0;
+        int _tideling_exp = 0;
+        int _tideling_level = 5;
     };
 }
 
