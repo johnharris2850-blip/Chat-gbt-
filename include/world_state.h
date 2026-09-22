@@ -66,6 +66,8 @@ namespace crown
         int _wild_hp = 16;
         int _battle_turn = 0;
         int _battle_move = 0;
+        bool _battle_result = false;
+        bool _battle_victory = false;
         bool _battle_eevee = false;
         int _tideling_exp = 0;
         int _tideling_level = 5;
