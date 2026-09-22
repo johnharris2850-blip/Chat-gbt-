@@ -103,7 +103,9 @@ jobs:
           make clean
           python3 tools/generate_placeholder_assets.py
           python3 tools/check_project.py
-          make -j2
+          # A clean build must finish Butano's graphics conversion (which emits
+          # bn_*_items_*.h) before compiling sources that include those headers.
+          make -j1
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
           test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"

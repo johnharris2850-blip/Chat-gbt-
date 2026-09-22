@@ -35,14 +35,14 @@ python3 tools/check_project.py
 tools/bootstrap_butano.sh
 tools/check_toolchain.sh
 make assets
-make -j2
+make -j1
 ```
 
 To use an existing checkout of the pinned engine:
 
 ```sh
 BUTANO=/absolute/path/to/butano-repository/butano tools/check_toolchain.sh
-make -j2 BUTANO=/absolute/path/to/butano-repository/butano
+make -j1 BUTANO=/absolute/path/to/butano-repository/butano
 ```
 
 The upstream repository contains the engine in its `butano/` subdirectory; the

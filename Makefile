@@ -7,6 +7,11 @@
 
 PYTHON ?= python3
 
+# Butano's first clean build creates public asset headers as a side effect of
+# converting graphics. Project sources include those headers, so do not compile
+# sources concurrently with their first generation.
+.NOTPARALLEL:
+
 ifneq ($(filter assets verify clean,$(MAKECMDGOALS)),)
 
 .PHONY: assets verify clean
