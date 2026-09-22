@@ -386,7 +386,8 @@ def main() -> int:
     args = parser.parse_args()
     valid = update(ROOT / "graphics/letters.bmp", letters(), args.check)
     valid &= update(ROOT / "graphics/markers.bmp", markers(), args.check)
-    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)\n    valid &= update(ROOT / "graphics/eevee.bmp", eevee(), args.check)
+    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)
+    valid &= update(ROOT / "graphics/eevee.bmp", eevee(), args.check)
     valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
