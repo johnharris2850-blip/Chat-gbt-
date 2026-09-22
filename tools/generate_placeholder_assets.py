@@ -225,8 +225,13 @@ def eevee() -> bytes:
     blob(25,19,5,4,outline); blob(26,18,4,3,light); blob(29,16,2,2,cream)
     for x in range(11,14): p(x,26,outline)
     for x in range(19,22): p(x,26,outline)
-    p(13,10,dark); p(19,10,dark); p(13,9,shine); p(19,9,shine)
+    # Eevee's unmistakable blue eyes are an early visual clue that he is unusual.
+    eye_blue=(67,159,224,255)
+    p(13,10,eye_blue); p(19,10,eye_blue); p(13,9,shine); p(19,9,shine)
     p(16,13,dark)
+    # A strange white diamond-like fur marking hints at his hidden heavenly purpose.
+    for x,y in ((16,15),(15,16),(16,16),(17,16),(16,17)):
+        p(x,y,shine)
     return bmp(width, height, bytes(pixels))
 
 def ui_panel() -> bytes:
