@@ -449,6 +449,20 @@ the Butano log still entered C++ compilation without running graphics conversion
 - The deterministic sheet-layout and metadata checks remain in place, so path
   discovery and asset validity are independently protected.
 
+### Indexed PNG correction
+
+Completed on 2026-09-22 after CI showed the validly named and located graphics
+still did not yield Butano item headers:
+
+- Replaced the custom RGBA true-color PNG output (color type 6) with deterministic
+  8-bit indexed PNG output (color type 3), including `PLTE` and `tRNS` chunks.
+- Palette index zero is transparent for sprite backgrounds; opaque colors are
+  assigned deterministic first-use indexes, with a hard 256-color limit.
+- Repository checks reject generated graphics that are not indexed PNGs, and
+  host tests inspect the generated PNG format as well as sprite-sheet dimensions.
+- After the real build, CI now requires all five expected Butano-generated item
+  headers before accepting or uploading the ROM.
+
 ## Milestone 2 — Data and engine skeleton
 
 - [ ] Document architecture, ownership, memory/frame/save budgets, and stable IDs.

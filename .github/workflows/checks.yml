@@ -117,6 +117,11 @@ jobs:
           fi
           printf '%s\n' 'Generated item headers and project objects:'
           find build -maxdepth 2 -type f \( -name 'bn_*_items_*.h' -o -name '*.o' \) -print | sort
+          test -f build/bn_sprite_items_letters.h
+          test -f build/bn_sprite_items_markers.h
+          test -f build/bn_sprite_items_ui_panel.h
+          test -f build/bn_regular_bg_items_starter_area.h
+          test -f build/bn_regular_bg_items_johns_home.h
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;
           test -s "${GITHUB_WORKSPACE}/crown_and_chaos.gba"

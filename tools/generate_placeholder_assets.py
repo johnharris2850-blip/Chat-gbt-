@@ -45,11 +45,36 @@ GLYPHS = {
 
 
 def png(width: int, height: int, pixels: bytes) -> bytes:
+    """Encode RGBA pixels as an 8-bit indexed PNG accepted by Butano/grit."""
     def chunk(kind: bytes, payload: bytes) -> bytes:
         return struct.pack(">I", len(payload)) + kind + payload + struct.pack(">I", zlib.crc32(kind + payload))
 
-    scanlines = b"".join(b"\0" + pixels[y * width * 4:(y + 1) * width * 4] for y in range(height))
-    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(scanlines, 9)) + chunk(b"IEND", b"")
+    palette: list[tuple[int, int, int, int]] = [(0, 0, 0, 0)]
+    palette_indexes = {palette[0]: 0}
+    indexed_pixels = bytearray(width * height)
+    for pixel_index in range(width * height):
+        rgba = tuple(pixels[pixel_index * 4:pixel_index * 4 + 4])
+        if rgba[3] == 0:
+            rgba = palette[0]
+        palette_index = palette_indexes.get(rgba)
+        if palette_index is None:
+            if len(palette) == 256:
+                raise ValueError("generated graphic exceeds the 256-color indexed PNG limit")
+            palette_index = len(palette)
+            palette_indexes[rgba] = palette_index
+            palette.append(rgba)
+        indexed_pixels[pixel_index] = palette_index
+
+    scanlines = b"".join(
+        b"\0" + indexed_pixels[y * width:(y + 1) * width]
+        for y in range(height)
+    )
+    palette_data = bytes(channel for color in palette for channel in color[:3])
+    transparency = bytes(color[3] for color in palette)
+    return (b"\x89PNG\r\n\x1a\n" +
+            chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 3, 0, 0, 0)) +
+            chunk(b"PLTE", palette_data) + chunk(b"tRNS", transparency) +
+            chunk(b"IDAT", zlib.compress(scanlines, 9)) + chunk(b"IEND", b""))
 
 
 def letters() -> bytes:

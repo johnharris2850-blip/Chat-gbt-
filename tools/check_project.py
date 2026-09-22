@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -64,6 +65,15 @@ def main() -> int:
             relative = path.relative_to(ROOT).as_posix()
             if relative in tracked:
                 errors.append(f"generated binary must not be tracked: {relative}")
+
+    for path in ROOT.glob("graphics/*.png"):
+        data = path.read_bytes()
+        if len(data) < 29 or data[:8] != b"\x89PNG\r\n\x1a\n":
+            errors.append(f"invalid generated PNG: {path.relative_to(ROOT)}")
+            continue
+        bit_depth, color_type = struct.unpack(">BB", data[24:26])
+        if (bit_depth, color_type) != (8, 3) or b"PLTE" not in data:
+            errors.append(f"Butano graphic must be an 8-bit indexed PNG: {path.relative_to(ROOT)}")
 
     for path in ROOT.rglob("*.json"):
         try:
