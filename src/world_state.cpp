@@ -290,6 +290,17 @@ namespace crown
             start_first_battle();
             return;
         }
+        if(_map_id==3 && _first_battle_seen && !_eevee_met && tile_at(_player_x)>=17)
+        {
+            _eevee_met=true;
+            _ui_mode=UiMode::party;
+            _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+            for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+            render_text("A STRANGE EEVEE",0,22,_ui_sprites);
+            render_text("WATCHES FROM THE PATH",0,37,_ui_sprites);
+            render_text("THEN FOLLOWS JOHN",0,52,_ui_sprites);
+            return;
+        }
         if(_map_id==3 && _candy_spoken_to && !_finale_seen && tile_at(_player_x)>=23) begin_dialogue(4);
     }
 
