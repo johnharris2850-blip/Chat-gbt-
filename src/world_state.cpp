@@ -6,6 +6,7 @@
 #include "bn_regular_bg_items_crownhaven.h"
 #include "bn_regular_bg_items_old_road.h"
 #include "bn_sprite_items_markers.h"
+#include "bn_sprite_items_starters.h"
 #include "bn_sprite_items_ui_panel.h"
 #include "generated/world_data.h"
 #include "npc.h"
@@ -74,7 +75,11 @@ namespace crown
         if(_ui_mode != UiMode::none)
         {
             if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
-            else if(input.action_pressed) advance_dialogue();
+            else if(input.action_pressed)
+            {
+                if(_ui_mode == UiMode::starter_scene) close_ui();
+                else advance_dialogue();
+            }
             return;
         }
         if(input.start_pressed) { open_start_menu(); return; }
@@ -156,7 +161,14 @@ namespace crown
         }
         else
         {
-            if(_dialogue_id==3) { _candy_spoken_to=true; spawn_npcs(); }
+            if(_dialogue_id==3)
+            {
+                _candy_spoken_to=true;
+                spawn_npcs();
+                persist();
+                show_starter_scene();
+                return;
+            }
             if(_dialogue_id==4) _finale_seen=true;
             close_ui(); persist();
         }
@@ -170,6 +182,18 @@ namespace crown
         for(int line=0;line<3;++line) render_text(lines[line],0,30+line*15,_ui_sprites);
     }
 
+    void WorldState::show_starter_scene()
+    {
+        _ui_mode=UiMode::starter_scene;
+        _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-48,-28,0));
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(48,-28,1));
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        render_text("TIDELING JOINS JOHN",0,32,_ui_sprites);
+        render_text("EMBEROO JOINS CANDY",0,47,_ui_sprites);
+        render_text("PRESS A",0,62,_ui_sprites);
+    }
+
     void WorldState::open_start_menu()
     {
         _ui_mode=UiMode::start_menu; _ui_panels.clear();
@@ -178,7 +202,7 @@ namespace crown
         render_text("JOHN",0,-20,_ui_sprites); render_text(names[_map_id],0,0,_ui_sprites);
         render_text(_candy_spoken_to ? "OLD ROAD OBJECTIVE" : "EXPLORE CROWNHAVEN",0,20,_ui_sprites); persist();
     }
-    void WorldState::close_ui() { _ui_sprites.clear(); _ui_panels.clear(); _ui_mode=UiMode::none; }
+    void WorldState::close_ui() { _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear(); _ui_mode=UiMode::none; }
 
     void WorldState::check_transition()
     {
