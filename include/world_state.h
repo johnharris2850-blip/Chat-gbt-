@@ -45,7 +45,7 @@ namespace crown
         bn::camera_ptr _camera;
         bn::regular_bg_ptr _background;
         bn::sprite_ptr _player;
-        bn::vector<bn::sprite_ptr, 5> _npcs;
+        bn::vector<bn::sprite_ptr, 8> _npcs;
         TextSprites _ui_sprites;
         bn::vector<bn::sprite_ptr, 4> _ui_panels;
         bn::vector<bn::sprite_ptr, 2> _creature_sprites;
@@ -63,6 +63,7 @@ namespace crown
         bool _first_battle_seen = false;
         int _tideling_hp = 20;
         int _wild_hp = 16;
+        int _battle_turn = 0;
     };
 }
 
