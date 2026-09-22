@@ -81,11 +81,23 @@ namespace crown
             else if(input.action_pressed)
             {
                 if(_ui_mode == UiMode::starter_scene) close_ui();
+                else if(_ui_mode == UiMode::party) close_ui();
+                else if(_ui_mode == UiMode::battle)
+                {
+                    _wild_hp -= 5;
+                    if(_wild_hp <= 0) { close_ui(); _first_battle_seen=true; }
+                    else { _tideling_hp -= 3; show_battle(); }
+                }
                 else advance_dialogue();
             }
             return;
         }
-        if(input.start_pressed) { open_start_menu(); return; }
+        if(input.start_pressed)
+        {
+            if(_candy_spoken_to) show_party();
+            else open_start_menu();
+            return;
+        }
         if(input.action_pressed) { try_interaction(); return; }
         update_movement(input);
         check_transition();
@@ -198,6 +210,32 @@ namespace crown
         render_text("PRESS A",0,62,_ui_sprites);
     }
 
+    void WorldState::show_party()
+    {
+        _ui_mode=UiMode::party; _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-64,-12,0));
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        render_text("JOHNS PARTY",0,24,_ui_sprites);
+        render_text("TIDELING LV 5",0,39,_ui_sprites);
+        render_text("HP 20 20",0,54,_ui_sprites);
+    }
+
+    void WorldState::start_first_battle()
+    {
+        _tideling_hp=20; _wild_hp=16; _ui_mode=UiMode::battle; show_battle();
+    }
+
+    void WorldState::show_battle()
+    {
+        _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-58,10,0));
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(58,-28,2));
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        render_text("TIDELING VS THORNLET",0,25,_ui_sprites);
+        render_text("A ATTACKS",0,42,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "THORNLET IS WEAK" : "WILD THORNLET",0,58,_ui_sprites);
+    }
+
     void WorldState::open_start_menu()
     {
         _ui_mode=UiMode::start_menu; _ui_panels.clear();
@@ -219,6 +257,11 @@ namespace crown
 
     void WorldState::check_finale()
     {
+        if(_map_id==3 && _candy_spoken_to && !_first_battle_seen && tile_at(_player_x)>=10)
+        {
+            start_first_battle();
+            return;
+        }
         if(_map_id==3 && _candy_spoken_to && !_finale_seen && tile_at(_player_x)>=23) begin_dialogue(4);
     }
 
