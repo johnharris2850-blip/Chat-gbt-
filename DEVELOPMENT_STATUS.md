@@ -345,17 +345,18 @@ unsupported target `dialogue.json.o`:
 - Repository validation rejects reintroducing a Butano `DATA` assignment for
   the authored JSON directory.
 
-### Clean-build generated-header ordering correction
+### Clean-build generated-header discovery correction
 
-Completed on 2026-09-22 after the first clean C++ compilation began before
-Butano had emitted `bn_sprite_items_letters.h`:
+Completed on 2026-09-22 after serializing the real CI build proved that the
+missing `bn_sprite_items_letters.h` was not a parallel-build race:
 
-- The project declares the Butano build non-parallel because its generated
-  public item headers are side effects of graphics conversion and are included
-  by project sources on the same first build.
-- CI and documented local builds now use one make job, ensuring `letters.png`
-  and its metadata are converted before `letter_renderer.cpp` is compiled.
-- Repository validation requires this clean-build ordering contract.
+- The project now passes canonical project-root paths for `SOURCES`, `INCLUDES`,
+  `GRAPHICS`, and `AUDIO`, keeping asset discovery stable when Butano reinvokes
+  the root Makefile from `build/`.
+- CI verifies both `letters.png` and its matching `letters.json` immediately
+  before compilation.
+- Repository checks validate the exact Butano sprite metadata (`type: sprite`,
+  `height: 16`) for letters and the expected metadata for every other graphic.
 
 ## Milestone 2 — Data and engine skeleton
 

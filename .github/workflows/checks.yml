@@ -103,8 +103,9 @@ jobs:
           make clean
           python3 tools/generate_placeholder_assets.py
           python3 tools/check_project.py
-          # A clean build must finish Butano's graphics conversion (which emits
-          # bn_*_items_*.h) before compiling sources that include those headers.
+          printf 'Configured graphics directory: %s\n' "$(realpath -e graphics)"
+          test -f "$(realpath -e graphics)/letters.png"
+          test -f "$(realpath -e graphics)/letters.json"
           make -j1
           printf '%s\n' 'GBA files produced by the build:'
           find "${GITHUB_WORKSPACE}" -type f -name '*.gba' -print -exec stat -c '%n %s bytes' {} \;

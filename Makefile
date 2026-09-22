@@ -6,11 +6,7 @@
 # or with `make assets` locally.
 
 PYTHON ?= python3
-
-# Butano's first clean build creates public asset headers as a side effect of
-# converting graphics. Project sources include those headers, so do not compile
-# sources concurrently with their first generation.
-.NOTPARALLEL:
+PROJECT_ROOT := $(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 
 ifneq ($(filter assets verify clean,$(MAKECMDGOALS)),)
 
@@ -32,10 +28,10 @@ else
 
 TARGET      := crown_and_chaos
 BUILD       := build
-SOURCES     := src
-INCLUDES    := include
-GRAPHICS    := graphics
-AUDIO       := audio
+SOURCES     := $(PROJECT_ROOT)/src
+INCLUDES    := $(PROJECT_ROOT)/include
+GRAPHICS    := $(PROJECT_ROOT)/graphics
+AUDIO       := $(PROJECT_ROOT)/audio
 
 ROMTITLE    := CROWN CHAOS
 ROMCODE     := CRNC

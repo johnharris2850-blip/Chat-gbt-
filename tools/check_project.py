@@ -79,7 +79,7 @@ def main() -> int:
 
     required = {
         "README.md": ("Player: John", "John's starter: Water type", "Candy's starter: Fire type"),
-        "Makefile": ("tools/generate_placeholder_assets.py", ".NOTPARALLEL:", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANO)/butano.mak", "TARGET      := crown_and_chaos"),
+        "Makefile": ("tools/generate_placeholder_assets.py", "PROJECT_ROOT :=", "GRAPHICS    := $(PROJECT_ROOT)/graphics", "LIBBUTANO   := $(BUTANO)", "include $(LIBBUTANO)/butano.mak", "TARGET      := crown_and_chaos"),
         "src/main.cpp": ("bn::core::init()", "crown::read_input()"),
         "src/input.cpp": ("bn::keypad::start_pressed()", "bn::keypad::a_pressed()"),
         "src/world_state.cpp": ("check_transition()", "check_secret()", "try_interaction()"),
@@ -93,6 +93,18 @@ def main() -> int:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     if re.search(r"^DATA\s*:?=", makefile, re.MULTILINE):
         errors.append("Makefile must not pass authored JSON sources through Butano DATA")
+
+    expected_graphics = {
+        "letters.json": {"type": "sprite", "height": 16},
+        "markers.json": {"type": "sprite", "height": 16},
+        "ui_panel.json": {"type": "sprite", "height": 64},
+        "starter_area.json": {"type": "regular_bg"},
+        "johns_home.json": {"type": "regular_bg"},
+    }
+    for filename, expected in expected_graphics.items():
+        path = ROOT / "graphics" / filename
+        if path.exists() and json.loads(path.read_text(encoding="utf-8")) != expected:
+            errors.append(f"invalid Butano graphics metadata: graphics/{filename}")
 
     if errors:
         print("\n".join(errors), file=sys.stderr)
