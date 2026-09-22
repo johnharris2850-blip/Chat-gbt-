@@ -137,6 +137,51 @@ def markers() -> bytes:
     return bmp(width, height, bytes(pixels))
 
 
+
+def starters() -> bytes:
+    """Three original 32x32 Crown & Chaos starter creatures: Water, Fire and Leaf."""
+    width, height = 32, 32 * 3
+    pixels = bytearray(width * height * 4)
+
+    def p(frame, x, y, color):
+        if 0 <= x < 32 and 0 <= y < 32:
+            offset = ((frame * 32 + y) * width + x) * 4
+            pixels[offset:offset + 4] = bytes(color)
+
+    def blob(frame, cx, cy, rx, ry, color):
+        for y in range(cy - ry, cy + ry + 1):
+            for x in range(cx - rx, cx + rx + 1):
+                if ((x-cx) * (x-cx) * ry * ry + (y-cy) * (y-cy) * rx * rx) <= rx * rx * ry * ry:
+                    p(frame, x, y, color)
+
+    # TIDELING — Water starter: round sea-drake with a finned tail and bright belly.
+    navy=(25,55,91,255); blue=(47,128,190,255); aqua=(91,205,218,255); cream=(236,226,174,255)
+    blob(0,15,17,9,9,navy); blob(0,15,16,8,8,blue); blob(0,15,20,5,5,aqua)
+    blob(0,13,11,5,5,blue); blob(0,21,14,4,3,aqua)
+    for x,y in ((10,9),(12,7),(15,6),(18,7)): p(0,x,y,aqua)
+    for x in range(4,10): p(0,x,19+(x%2),navy)
+    for y in range(23,28): p(0,11,y,navy); p(0,20,y,navy)
+    p(0,11,11,cream); p(0,12,11,(20,24,35,255))
+
+    # EMBEROO — Fire starter: small lion/roo creature with flame ears and tail.
+    brown=(91,48,35,255); red=(188,58,42,255); orange=(238,119,44,255); gold=(250,190,67,255)
+    blob(1,16,18,8,9,brown); blob(1,16,14,7,7,red); blob(1,16,20,5,5,orange)
+    for x,y in ((10,7),(11,5),(12,8),(20,7),(21,5),(22,8)): p(1,x,y,gold)
+    for x in range(22,29): p(1,x,20-(x%3),orange)
+    p(1,29,17,gold); p(1,29,16,gold); p(1,10,13,gold); p(1,11,13,(25,22,25,255))
+    for y in range(25,30): p(1,12,y,brown); p(1,20,y,brown)
+
+    # THORNLET — Leaf starter: sturdy woodland cub with leaf crown and vine tail.
+    dark=(35,78,48,255); green=(67,143,65,255); leaf=(117,181,72,255); tan=(205,177,111,255)
+    blob(2,16,18,9,9,dark); blob(2,16,17,8,8,green); blob(2,16,20,5,5,tan)
+    for x,y in ((16,5),(13,7),(19,7),(11,9),(21,9)): blob(2,x,y,2,3,leaf)
+    for x in range(23,30): p(2,x,19+(x%2),dark)
+    p(2,29,18,leaf); p(2,10,13,tan); p(2,11,13,(24,31,24,255))
+    for y in range(25,30): p(2,12,y,dark); p(2,20,y,dark)
+
+    return bmp(width, height, bytes(pixels))
+
+
 def ui_panel() -> bytes:
     width = height = 64
     pixels = bytearray(width * height * 4)
@@ -305,6 +350,7 @@ def main() -> int:
     args = parser.parse_args()
     valid = update(ROOT / "graphics/letters.bmp", letters(), args.check)
     valid &= update(ROOT / "graphics/markers.bmp", markers(), args.check)
+    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)
     valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())
