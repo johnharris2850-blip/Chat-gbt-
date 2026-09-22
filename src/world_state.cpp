@@ -84,6 +84,13 @@ namespace crown
         }
         if(_ui_mode != UiMode::none)
         {
+            if(input.cancel_pressed && _ui_mode == UiMode::battle && _eevee_met)
+            {
+                _battle_eevee = !_battle_eevee;
+                _battle_move = 0;
+                show_battle();
+                return;
+            }
             if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
             else if(input.action_pressed)
             {
