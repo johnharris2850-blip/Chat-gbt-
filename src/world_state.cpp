@@ -100,7 +100,18 @@ namespace crown
             {
                 if(_ui_mode == UiMode::starter_scene) close_ui();
                 else if(_ui_mode == UiMode::party) close_ui();
-                else if(_ui_mode == UiMode::battle) choose_battle_move(input);
+                else if(_ui_mode == UiMode::battle)
+                {
+                    if(_battle_result)
+                    {
+                        close_ui();
+                        persist();
+                    }
+                    else
+                    {
+                        choose_battle_move(input);
+                    }
+                }
                 else advance_dialogue();
             }
             return;
