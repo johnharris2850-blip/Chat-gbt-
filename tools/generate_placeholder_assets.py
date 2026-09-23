@@ -276,6 +276,17 @@ def eevee() -> bytes:
     # A strange white diamond-like fur marking hints at his hidden heavenly purpose.
     for x,y in ((16,15),(15,16),(16,16),(17,16),(16,17)):
         p(x,y,shine)
+    # Extra definition keeps the special companion readable at native GBA scale:
+    # deeper ear interiors, luminous eye rims, layered ruff and a brighter marking.
+    ear_inner=(116,67,52,255); sky=(111,205,245,255); soft_cream=(252,238,201,255)
+    for x,y in ((10,4),(9,2),(22,4),(23,2)): p(x,y,ear_inner)
+    p(12,10,sky); p(20,10,sky)
+    p(13,11,(38,93,151,255)); p(19,11,(38,93,151,255))
+    for x,y in ((12,18),(13,17),(14,19),(18,19),(19,17),(20,18)):
+        p(x,y,soft_cream)
+    p(16,15,(255,255,255,255)); p(16,16,(255,255,255,255))
+    # Subtle tail bands make his silhouette less flat without revealing the mystery.
+    p(25,17,cream); p(27,17,cream); p(28,16,shine)
     return bmp(width, height, bytes(pixels))
 
 def ui_panel() -> bytes:
