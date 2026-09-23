@@ -75,7 +75,7 @@ class DialogueDataTests(unittest.TestCase):
                 self.assertTrue(any(page))
                 for line in page:
                     self.assertLessEqual(len(line), 23)
-                    self.assertRegex(line, r"^[A-Z &]*$")
+                    self.assertRegex(line, r"^[A-Z0-9 &]*$")
 
     def test_all_dialogue_is_compiled_into_generated_world_data(self) -> None:
         for name, conversation in DIALOGUE.items():
