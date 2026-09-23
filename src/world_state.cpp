@@ -261,9 +261,11 @@ namespace crown
     void WorldState::show_battle()
     {
         _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
-        if(_battle_eevee) _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(-58,10));
-        else _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-58,10,0));
-        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(58,-28,2));
+        if(_battle_eevee) _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(-62,4));
+        else _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-62,4,0));
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(62,-34,2));
+        // A full-width command deck anchors the creatures and leaves the upper
+        // battlefield readable, closer to a polished handheld RPG composition.
         for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
         if(_battle_result)
         {
@@ -276,11 +278,12 @@ namespace crown
         // and each glyph currently consumes one sprite.
         constexpr const char* tideling_moves[]={"TIDE TACKLE","BUBBLE BURST","BRACE","LITTLE ROAR"};
         constexpr const char* eevee_moves[]={"STAR DASH","GUIDING LIGHT","QUICK STEP","WATCHFUL EYES"};
-        render_text(_battle_eevee ? "EEVEE" : "TIDELING",-72,18,_ui_sprites);
-        render_text(_wild_hp <= 5 ? "FOE HP LOW" : "FOE THORNLET",62,18,_ui_sprites);
-        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,38,_ui_sprites);
-        render_text(_battle_move < 2 ? "LEFT RIGHT" : "UP DOWN",0,54,_ui_sprites);
-        render_text(_eevee_met ? "A USE B SWITCH" : "A USE",0,68,_ui_sprites);
+        render_text(_battle_eevee ? "EEVEE LV 5" : "TIDELING LV 5",-66,18,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "THORNLET HP LOW" : "THORNLET LV 4",64,-4,_ui_sprites);
+        render_text(_battle_eevee ? "HP 20" : (_tideling_hp <= 5 ? "HP LOW" : "HP 20"),-68,32,_ui_sprites);
+        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,48,_ui_sprites);
+        render_text(_battle_move < 2 ? "LEFT RIGHT" : "UP DOWN",0,62,_ui_sprites);
+        render_text(_eevee_met ? "A USE B SWITCH" : "A USE",0,74,_ui_sprites);
     }
 
     void WorldState::choose_battle_move(const Input&)
