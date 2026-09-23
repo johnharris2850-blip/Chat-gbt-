@@ -75,6 +75,7 @@ namespace crown
         int _eevee_exp = 0;
         int _eevee_level = 5;
         bool _eevee_met = false;
+        int _wild_battles_won = 0;
     };
 }
 
