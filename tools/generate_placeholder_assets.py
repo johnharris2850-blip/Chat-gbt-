@@ -235,14 +235,35 @@ def eevee() -> bytes:
     return bmp(width, height, bytes(pixels))
 
 def ui_panel() -> bytes:
+    """Ornate Crown & Chaos dialogue/menu panel with a classic GBA RPG feel."""
     width = height = 64
     pixels = bytearray(width * height * 4)
+    gold = (226, 194, 112, 255)
+    light_gold = (250, 232, 166, 255)
+    navy = (20, 35, 58, 255)
+    inner = (31, 52, 76, 255)
+    shadow = (9, 17, 31, 255)
     for y in range(height):
         for x in range(width):
-            border = x < 2 or x >= width - 2 or y < 2 or y >= height - 2
-            color = (232, 218, 170, 255) if border else (12, 22, 42, 255)
+            edge = min(x, y, width - 1 - x, height - 1 - y)
+            if edge == 0:
+                color = shadow
+            elif edge == 1:
+                color = gold
+            elif edge == 2:
+                color = light_gold
+            elif edge == 3:
+                color = navy
+            else:
+                color = inner if ((x // 8 + y // 8) & 1) else navy
             offset = (y * width + x) * 4
             pixels[offset:offset + 4] = bytes(color)
+    # Small crown-like corner ornaments make joined panels feel bespoke.
+    for ox, oy in ((5, 5), (58, 5), (5, 58), (58, 58)):
+        for dx, dy in ((0, 0), (-2, 1), (2, 1), (0, 2)):
+            x, y = ox + dx, oy + dy
+            offset = (y * width + x) * 4
+            pixels[offset:offset + 4] = bytes(light_gold)
     return bmp(width, height, bytes(pixels))
 
 
