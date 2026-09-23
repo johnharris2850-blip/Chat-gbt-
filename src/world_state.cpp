@@ -353,9 +353,10 @@ namespace crown
             _ui_mode=UiMode::party;
             _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
             for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
-            render_text("A STRANGE EEVEE",0,22,_ui_sprites);
-            render_text("WATCHES FROM THE PATH",0,37,_ui_sprites);
-            render_text("THEN FOLLOWS JOHN",0,52,_ui_sprites);
+            render_text("A STRANGE EEVEE",0,18,_ui_sprites);
+            render_text("BLUE EYES WATCH JOHN",0,32,_ui_sprites);
+            render_text("A WHITE MARK GLOWS",0,46,_ui_sprites);
+            render_text("THEN EEVEE FOLLOWS",0,60,_ui_sprites);
             _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(0,-24));
             return;
         }
