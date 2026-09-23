@@ -207,6 +207,11 @@ def starters() -> bytes:
     for x in range(4,10): p(0,x,19+(x%2),navy)
     for y in range(23,28): p(0,11,y,navy); p(0,20,y,navy)
     p(0,11,11,cream); p(0,12,11,(20,24,35,255))
+    # Tideling facial shine, belly highlight, fin ridges and water-bright accents.
+    p(0,11,10,(245,249,226,255)); p(0,12,10,(32,64,92,255))
+    for x,y in ((14,7),(17,8),(21,13),(8,18)): p(0,x,y,(137,229,232,255))
+    for x in range(13,18): p(0,x,22,cream)
+    p(0,7,19,(137,229,232,255)); p(0,6,20,(137,229,232,255))
 
     # EMBEROO — Fire starter: small lion/roo creature with flame ears and tail.
     brown=(91,48,35,255); red=(188,58,42,255); orange=(238,119,44,255); gold=(250,190,67,255)
@@ -215,6 +220,11 @@ def starters() -> bytes:
     for x in range(22,29): p(1,x,20-(x%3),orange)
     p(1,29,17,gold); p(1,29,16,gold); p(1,10,13,gold); p(1,11,13,(25,22,25,255))
     for y in range(25,30): p(1,12,y,brown); p(1,20,y,brown)
+    # Emberoo gets a brighter muzzle, expressive eye and layered flame highlights.
+    p(1,10,12,(255,226,151,255)); p(1,11,12,(31,25,25,255)); p(1,11,11,(255,244,205,255))
+    for x,y in ((11,5),(21,5),(28,17),(29,16)): p(1,x,y,(255,218,82,255))
+    for x,y in ((12,6),(20,6),(27,18)): p(1,x,y,(255,151,45,255))
+    for x in range(14,19): p(1,x,21,(250,190,67,255))
 
     # THORNLET — Leaf starter: sturdy woodland cub with leaf crown and vine tail.
     dark=(35,78,48,255); green=(67,143,65,255); leaf=(117,181,72,255); tan=(205,177,111,255)
@@ -223,6 +233,11 @@ def starters() -> bytes:
     for x in range(23,30): p(2,x,19+(x%2),dark)
     p(2,29,18,leaf); p(2,10,13,tan); p(2,11,13,(24,31,24,255))
     for y in range(25,30): p(2,12,y,dark); p(2,20,y,dark)
+    # Thornlet gains leaf veins, eye shine and warm woodland markings.
+    p(2,10,12,(240,225,161,255)); p(2,11,12,(24,31,24,255)); p(2,11,11,(246,250,220,255))
+    for x,y in ((16,4),(13,7),(19,7),(11,9),(21,9)): p(2,x,y,(166,211,92,255))
+    for x,y in ((16,6),(13,9),(19,9)): p(2,x,y,dark)
+    for x in range(14,19): p(2,x,21,(224,196,125,255))
 
     return bmp(width, height, bytes(pixels))
 
