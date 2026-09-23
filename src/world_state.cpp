@@ -245,6 +245,7 @@ namespace crown
         if(_eevee_met)
         {
             render_text(_eevee_level > 5 ? "EEVEE LV 6 HP 20" : "EEVEE LV 5 HP 20",0,50,_ui_sprites);
+            render_text("MYSTERIOUS MARK",0,66,_ui_sprites);
         }
         else
         {
