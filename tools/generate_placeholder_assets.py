@@ -440,10 +440,33 @@ def map_bmp(map_data: dict) -> bytes:
                     put(pixels,x,r[3]*8-15,(57,42,32,255))
                 put(pixels,center+2,r[3]*8-7,(224,178,70,255))
         elif map_data["id"] == "old_road":
-            for tx,ty in ((14,12),(16,23),(24,9)):
+            # Old Road is rougher and more overgrown than Crownhaven.
+            for r in map_data.get("paths", []):
+                for ty in range(r[1], r[3]):
+                    for tx in range(r[0], r[2]):
+                        if (tx + ty) % 4 == 0:
+                            px0,py0=tx*8+2,ty*8+3
+                            for yy in range(2):
+                                for xx in range(3): put(pixels,px0+xx,py0+yy,(143,113,72,255))
+            # Mossy roadside stones.
+            for tx,ty in ((14,12),(16,23),(24,9),(20,18),(27,15)):
                 for yy in range(8):
                     for xx in range(10):
-                        if (xx-5)**2 + (yy-5)**2 < 24: put(pixels,tx*8+xx,ty*8+yy,(104,105,99,255))
+                        d=(xx-5)**2 + (yy-5)**2
+                        if d < 24:
+                            color=(104,105,99,255) if yy > 2 else (137,139,125,255)
+                            put(pixels,tx*8+xx,ty*8+yy,color)
+                for xx in range(3,7): put(pixels,tx*8+xx,ty*8+2,(67,119,57,255))
+            # Tall grass pockets frame the first battle and Eevee stretch.
+            for tx,ty in ((12,17),(13,17),(14,17),(18,20),(19,20),(20,20),(22,13),(23,13),(24,13)):
+                for blade in range(1,7,2):
+                    put(pixels,tx*8+blade,ty*8+6,(31,91,42,255))
+                    put(pixels,tx*8+blade+1,ty*8+4,(73,145,64,255))
+            # A weathered marker hints that this road predates the village.
+            for y in range(112,132):
+                for x in range(174,182): put(pixels,x,y,(101,94,78,255))
+            for y in range(114,119):
+                for x in range(176,180): put(pixels,x,y,(185,170,126,255))
         for tx,ty in ((6,18),(16,18),(23,16),(28,20)):
             for yy in range(2,6):
                 for xx in range(2,6): put(pixels,tx*8+xx,ty*8+yy,(235,205 if tx%2 else 90,90,255))
