@@ -75,7 +75,7 @@ class DialogueDataTests(unittest.TestCase):
                 self.assertTrue(any(page))
                 for line in page:
                     self.assertLessEqual(len(line), 23)
-                    self.assertRegex(line, r"^[A-Z &]*$")
+                    self.assertRegex(line, r"^[A-Z0-9 &]*$")
 
     def test_all_dialogue_is_compiled_into_generated_world_data(self) -> None:
         for name, conversation in DIALOGUE.items():
@@ -95,8 +95,8 @@ class GeneratedGraphicsTests(unittest.TestCase):
             planes, bit_depth, compression = struct.unpack("<HHI", data[26:34])
             return width, height, planes, bit_depth if compression == 0 else -1
 
-        self.assertEqual(bmp_info(letters()), (16, 27 * 16, 1, 8))
-        self.assertEqual(bmp_info(markers()), (16, 16 * 16, 1, 8))
+        self.assertEqual(bmp_info(letters()), (8, 37 * 16, 1, 8))
+        self.assertEqual(bmp_info(markers()), (16, 17 * 16, 1, 8))
 
 
 if __name__ == "__main__":

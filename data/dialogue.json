@@ -1,21 +1,101 @@
 {
-  "villager_1": [["MORNING JOHN","YOURE OUT EARLY",""]],
-  "villager_2": [
-    ["PEOPLE HAVE BEEN","TALKING ABOUT STRANGE", ""],
-    ["LIGHTS BEYOND THE","OLD ROAD", ""]
+  "villager_1": [
+    [
+      "MORNING JOHN",
+      "YOURE OUT EARLY",
+      ""
+    ]
   ],
-  "villager_3": [["YOUR FRIEND CANDY","WAS LOOKING FOR YOU",""]],
+  "villager_2": [
+    [
+      "PEOPLE HAVE BEEN",
+      "TALKING ABOUT STRANGE",
+      ""
+    ],
+    [
+      "LIGHTS BEYOND THE",
+      "OLD ROAD",
+      ""
+    ]
+  ],
+  "villager_3": [
+    [
+      "YOUR FRIEND CANDY",
+      "WAS LOOKING FOR YOU",
+      ""
+    ]
+  ],
   "candy": [
-    ["THERE YOU ARE","", ""],
-    ["IVE BEEN WAITING","FOR YOU", ""],
-    ["SOMETHING STRANGE","HAPPENED NEAR THE","OLD ROAD LAST NIGHT"],
-    ["WE SHOULD GO AND SEE","WHATS GOING ON", ""],
-    ["OBJECTIVE","MEET CANDY AT THE","OLD ROAD"]
+    [
+      "THERE YOU ARE",
+      "",
+      ""
+    ],
+    [
+      "IVE BEEN WAITING",
+      "FOR YOU",
+      ""
+    ],
+    [
+      "SOMETHING STRANGE",
+      "HAPPENED NEAR THE",
+      "OLD ROAD LAST NIGHT"
+    ],
+    [
+      "WE SHOULD GO AND SEE",
+      "WHATS GOING ON",
+      ""
+    ],
+    [
+      "OBJECTIVE",
+      "MEET CANDY AT THE",
+      "OLD ROAD"
+    ]
   ],
   "finale": [
-    ["JOHN LOOK","", ""],
-    ["THE GROUND IS","SHAKING", ""],
-    ["SOMETHING IS COMING","", ""],
-    ["CROWN & CHAOS","TO BE CONTINUED", ""]
+    [
+      "JOHN LOOK",
+      "",
+      ""
+    ],
+    [
+      "THE GROUND IS",
+      "SHAKING",
+      ""
+    ],
+    [
+      "SOMETHING IS COMING",
+      "",
+      ""
+    ],
+    [
+      "CROWN & CHAOS",
+      "TO BE CONTINUED",
+      ""
+    ]
+  ],
+  "jexi_before_candy": [
+    [
+      "JEXI HERE",
+      "PROFESSORS ASSISTANT",
+      ""
+    ],
+    [
+      "LOOKING FOR CANDY",
+      "TRY EAST CROWNHAVEN",
+      ""
+    ]
+  ],
+  "jexi_after_candy": [
+    [
+      "LOST AGAIN JOHN",
+      "I WAS WONDERING",
+      "HOW LONG IT WOULD TAKE"
+    ],
+    [
+      "YOUR NEXT STOP IS",
+      "THE OLD ROAD",
+      "HEAD EAST"
+    ]
   ]
 }

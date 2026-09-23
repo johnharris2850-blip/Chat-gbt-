@@ -21,6 +21,11 @@ namespace
             return 26;
         }
 
+        if(character >= '0' && character <= '9')
+        {
+            return 27 + character - '0';
+        }
+
         return -1;
     }
 }
@@ -29,7 +34,10 @@ namespace crown
 {
     void render_text(bn::string_view text, int center_x, int y, TextSprites& output)
     {
-        constexpr int advance = 10;
+        // The generated glyph sheet uses 16x16 OBJ cells, but the actual letters are
+        // compact. Scale the cells down to a GBA-RPG dialogue size and use a tight
+        // advance so 23-character lines fit cleanly inside the dialogue panel.
+        constexpr int advance = 6;
         const int start_x = center_x - (text.size() * advance) / 2 + advance / 2;
 
         for(int index = 0; index < text.size(); ++index)
@@ -38,7 +46,10 @@ namespace crown
 
             if(tile >= 0)
             {
-                output.push_back(bn::sprite_items::letters.create_sprite(start_x + index * advance, y, tile));
+                bn::sprite_ptr glyph = bn::sprite_items::letters.create_sprite(start_x + index * advance, y, tile);
+                // Keep glyphs unscaled. Scaling each character consumes scarce
+                // sprite affine resources on real GBA hardware/emulators.
+                output.push_back(bn::move(glyph));
             }
         }
     }

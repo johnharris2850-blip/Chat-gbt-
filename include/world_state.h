@@ -21,7 +21,7 @@ namespace crown
         void update(const Input& input);
 
     private:
-        enum class UiMode { none, dialogue, start_menu };
+        enum class UiMode { none, dialogue, start_menu, starter_scene, party, battle };
         void load_map(std::uint8_t map_id, int x, int y);
         void spawn_npcs();
         void update_movement(const Input& input);
@@ -30,6 +30,11 @@ namespace crown
         void advance_dialogue();
         void show_dialogue_page();
         void open_start_menu();
+        void show_starter_scene();
+        void show_party();
+        void start_first_battle();
+        void show_battle();
+        void choose_battle_move(const Input& input);
         void close_ui();
         void check_transition();
         void check_finale();
@@ -41,9 +46,10 @@ namespace crown
         bn::camera_ptr _camera;
         bn::regular_bg_ptr _background;
         bn::sprite_ptr _player;
-        bn::vector<bn::sprite_ptr, 5> _npcs;
+        bn::vector<bn::sprite_ptr, 8> _npcs;
         TextSprites _ui_sprites;
         bn::vector<bn::sprite_ptr, 4> _ui_panels;
+        bn::vector<bn::sprite_ptr, 2> _creature_sprites;
         std::uint8_t _map_id = 0;
         std::uint8_t _dialogue_id = 0;
         Direction _facing = Direction::down;
@@ -55,6 +61,21 @@ namespace crown
         int _shake_frames = 0;
         bool _candy_spoken_to = false;
         bool _finale_seen = false;
+        bool _first_battle_seen = false;
+        int _tideling_hp = 20;
+        int _wild_hp = 16;
+        int _battle_turn = 0;
+        int _battle_move = 0;
+        bool _battle_result = false;
+        bool _battle_victory = false;
+        bool _battle_eevee = false;
+        int _tideling_exp = 0;
+        int _tideling_level = 5;
+        int _eevee_hp = 20;
+        int _eevee_exp = 0;
+        int _eevee_level = 5;
+        bool _eevee_met = false;
+        int _wild_battles_won = 0;
     };
 }
 

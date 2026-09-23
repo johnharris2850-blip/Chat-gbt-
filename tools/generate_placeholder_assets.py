@@ -41,6 +41,17 @@ GLYPHS = {
     "Y": ("10001", "10001", "01010", "00100", "00100", "00100", "00100"),
     "Z": ("11111", "00001", "00010", "00100", "01000", "10000", "11111"),
     "&": ("01100", "10010", "10100", "01000", "10101", "10010", "01101"),
+    "0": ("01110", "10001", "10011", "10101", "11001", "10001", "01110"),
+    "1": ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
+    "2": ("01110", "10001", "00001", "00010", "00100", "01000", "11111"),
+    "3": ("11110", "00001", "00001", "01110", "00001", "00001", "11110"),
+    "4": ("00010", "00110", "01010", "10010", "11111", "00010", "00010"),
+    "5": ("11111", "10000", "10000", "11110", "00001", "00001", "11110"),
+    "6": ("01110", "10000", "10000", "11110", "10001", "10001", "01110"),
+    "7": ("11111", "00001", "00010", "00100", "01000", "01000", "01000"),
+    "8": ("01110", "10001", "10001", "01110", "10001", "10001", "01110"),
+    "9": ("01110", "10001", "10001", "01111", "00001", "00001", "01110"),
+
 }
 
 
@@ -82,24 +93,24 @@ def bmp(width: int, height: int, pixels: bytes) -> bytes:
 def letters() -> bytes:
     # Butano sprite items are stacked vertically; `height` in letters.json is
     # the height of each item, not the height of a horizontal strip.
-    width, height = 16, 27 * 16
+    # Butano requires 16px-high sprite items. Draw the 5x7 font at native
+    # resolution inside each 8x16 cell so no runtime affine scaling is needed.
+    width, height = 8, 37 * 16
     pixels = bytearray(width * height * 4)
-    for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ&"):
+    for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ&0123456789"):
         for row, bits in enumerate(GLYPHS[glyph]):
             for column, bit in enumerate(bits):
                 if bit == "1":
-                    for yy in range(2):
-                        for xx in range(2):
-                            x = 3 + column * 2 + xx
-                            y = glyph_index * 16 + 1 + row * 2 + yy
-                            offset = (y * width + x) * 4
-                            pixels[offset:offset + 4] = bytes((240, 248, 255, 255))
+                    x = 1 + column
+                    y = glyph_index * 16 + 4 + row
+                    offset = (y * width + x) * 4
+                    pixels[offset:offset + 4] = bytes((240, 248, 255, 255))
     return bmp(width, height, bytes(pixels))
 
 
 def markers() -> bytes:
-    """John has 4x3 walking frames, followed by three villagers and Candy."""
-    width, height = 16, 16 * 16
+    """John has 4x3 walking frames, followed by three villagers, Candy and Jexi."""
+    width, height = 16, 17 * 16
     pixels = bytearray(width * height * 4)
     def pixel(frame, x, y, color):
         offset = ((frame * 16 + y) * width + x) * 4
@@ -117,35 +128,197 @@ def markers() -> bytes:
                 if step != 2: pixel(frame, x - (1 if step == 1 else 0), y, (58, 42, 38, 255))
             for x in range(9, 12):
                 if step != 1: pixel(frame, x + (1 if step == 2 else 0), y, (58, 42, 38, 255))
-        # Directional hair/profile details.
+        # Directional hair/profile details plus readable face and outfit accents.
         if direction == 1:
             for x in range(5,11): pixel(frame,x,6,(55,35,25,255))
         elif direction == 2: pixel(frame,4,6,(55,35,25,255))
         elif direction == 3: pixel(frame,11,6,(55,35,25,255))
-    npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255)]
+        if direction != 1:
+            eye_x = 6 if direction != 3 else 9
+            pixel(frame,eye_x,5,(31,38,48,255))
+        # Cream collar, gold fastener and boot highlights distinguish John at 16px.
+        pixel(frame,7,7,(232,218,176,255)); pixel(frame,8,7,(232,218,176,255))
+        pixel(frame,8,8,(218,165,62,255))
+        pixel(frame,4,13,(94,66,48,255)); pixel(frame,11,13,(94,66,48,255))
+    npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255),(65,108,168,255)]
     for index, clothes in enumerate(npc_colors):
         frame = 12 + index
-        hair = (245,190,72,255) if index == 3 else ((92,65,44,255) if index else (205,205,190,255))
+        hair = (245,190,72,255) if index == 3 else ((45,34,55,255) if index == 4 else ((92,65,44,255) if index else (205,205,190,255)))
         for y in range(2,6):
             for x in range(4,12): pixel(frame,x,y,hair)
         for y in range(6,9):
             for x in range(5,11): pixel(frame,x,y,(232,184,142,255))
         for y in range(9,14):
             for x in range(3,13): pixel(frame,x,y,clothes)
+        # Tiny face pixels and outfit accents keep villagers distinct at GBA scale.
+        pixel(frame,6,7,(39,43,48,255)); pixel(frame,9,7,(39,43,48,255))
+        if index == 0:
+            # Elder villager: pale hair, burgundy coat and walking-cane highlight.
+            pixel(frame,4,4,(224,220,199,255)); pixel(frame,11,4,(224,220,199,255))
+            for y in range(10,15): pixel(frame,13,y,(128,86,48,255))
+            pixel(frame,7,9,(218,176,77,255))
+        elif index == 1:
+            # Ranger/gardener: green tunic, brown belt and cap brim.
+            for x in range(4,12): pixel(frame,x,3,(47,91,54,255))
+            for x in range(5,11): pixel(frame,x,9,(116,76,45,255))
+            pixel(frame,4,11,(205,176,101,255))
+        elif index == 2:
+            # Young villager: violet clothes with a light scarf and satchel.
+            for x in range(5,11): pixel(frame,x,9,(222,205,169,255))
+            for y in range(10,14): pixel(frame,11,y,(139,92,49,255))
+            pixel(frame,10,12,(222,166,67,255))
         if index == 3:
+            # Candy: bright hair silhouette, warm red outfit and gold accessory.
             pixel(frame,3,5,hair); pixel(frame,12,5,hair); pixel(frame,2,6,hair); pixel(frame,13,6,hair)
+            pixel(frame,7,9,(244,205,91,255)); pixel(frame,8,9,(244,205,91,255))
+            pixel(frame,4,13,(106,52,58,255)); pixel(frame,11,13,(106,52,58,255))
+        if index == 4:
+            # Jexi: dark hair, pale research coat, blue shirt and badge.
+            for y in range(9,13):
+                pixel(frame,3,y,(225,232,236,255)); pixel(frame,12,y,(225,232,236,255))
+            pixel(frame,5,9,(70,145,205,255)); pixel(frame,10,9,(70,145,205,255))
+            pixel(frame,7,10,(225,232,236,255)); pixel(frame,8,10,(225,232,236,255))
+            pixel(frame,10,11,(229,180,63,255))
     return bmp(width, height, bytes(pixels))
 
 
-def ui_panel() -> bytes:
-    width = height = 64
+
+def starters() -> bytes:
+    """Three original 32x32 Crown & Chaos starter creatures: Water, Fire and Leaf."""
+    width, height = 32, 32 * 3
     pixels = bytearray(width * height * 4)
-    for y in range(height):
-        for x in range(width):
-            border = x < 2 or x >= width - 2 or y < 2 or y >= height - 2
-            color = (232, 218, 170, 255) if border else (12, 22, 42, 255)
+
+    def p(frame, x, y, color):
+        if 0 <= x < 32 and 0 <= y < 32:
+            offset = ((frame * 32 + y) * width + x) * 4
+            pixels[offset:offset + 4] = bytes(color)
+
+    def blob(frame, cx, cy, rx, ry, color):
+        for y in range(cy - ry, cy + ry + 1):
+            for x in range(cx - rx, cx + rx + 1):
+                if ((x-cx) * (x-cx) * ry * ry + (y-cy) * (y-cy) * rx * rx) <= rx * rx * ry * ry:
+                    p(frame, x, y, color)
+
+    # TIDELING — Water starter: round sea-drake with a finned tail and bright belly.
+    navy=(25,55,91,255); blue=(47,128,190,255); aqua=(91,205,218,255); cream=(236,226,174,255)
+    blob(0,15,17,9,9,navy); blob(0,15,16,8,8,blue); blob(0,15,20,5,5,aqua)
+    blob(0,13,11,5,5,blue); blob(0,21,14,4,3,aqua)
+    for x,y in ((10,9),(12,7),(15,6),(18,7)): p(0,x,y,aqua)
+    for x in range(4,10): p(0,x,19+(x%2),navy)
+    for y in range(23,28): p(0,11,y,navy); p(0,20,y,navy)
+    p(0,11,11,cream); p(0,12,11,(20,24,35,255))
+    # Tideling facial shine, belly highlight, fin ridges and water-bright accents.
+    p(0,11,10,(245,249,226,255)); p(0,12,10,(32,64,92,255))
+    for x,y in ((14,7),(17,8),(21,13),(8,18)): p(0,x,y,(137,229,232,255))
+    for x in range(13,18): p(0,x,22,cream)
+    p(0,7,19,(137,229,232,255)); p(0,6,20,(137,229,232,255))
+
+    # EMBEROO — Fire starter: small lion/roo creature with flame ears and tail.
+    brown=(91,48,35,255); red=(188,58,42,255); orange=(238,119,44,255); gold=(250,190,67,255)
+    blob(1,16,18,8,9,brown); blob(1,16,14,7,7,red); blob(1,16,20,5,5,orange)
+    for x,y in ((10,7),(11,5),(12,8),(20,7),(21,5),(22,8)): p(1,x,y,gold)
+    for x in range(22,29): p(1,x,20-(x%3),orange)
+    p(1,29,17,gold); p(1,29,16,gold); p(1,10,13,gold); p(1,11,13,(25,22,25,255))
+    for y in range(25,30): p(1,12,y,brown); p(1,20,y,brown)
+    # Emberoo gets a brighter muzzle, expressive eye and layered flame highlights.
+    p(1,10,12,(255,226,151,255)); p(1,11,12,(31,25,25,255)); p(1,11,11,(255,244,205,255))
+    for x,y in ((11,5),(21,5),(28,17),(29,16)): p(1,x,y,(255,218,82,255))
+    for x,y in ((12,6),(20,6),(27,18)): p(1,x,y,(255,151,45,255))
+    for x in range(14,19): p(1,x,21,(250,190,67,255))
+
+    # THORNLET — Leaf starter: sturdy woodland cub with leaf crown and vine tail.
+    dark=(35,78,48,255); green=(67,143,65,255); leaf=(117,181,72,255); tan=(205,177,111,255)
+    blob(2,16,18,9,9,dark); blob(2,16,17,8,8,green); blob(2,16,20,5,5,tan)
+    for x,y in ((16,5),(13,7),(19,7),(11,9),(21,9)): blob(2,x,y,2,3,leaf)
+    for x in range(23,30): p(2,x,19+(x%2),dark)
+    p(2,29,18,leaf); p(2,10,13,tan); p(2,11,13,(24,31,24,255))
+    for y in range(25,30): p(2,12,y,dark); p(2,20,y,dark)
+    # Thornlet gains leaf veins, eye shine and warm woodland markings.
+    p(2,10,12,(240,225,161,255)); p(2,11,12,(24,31,24,255)); p(2,11,11,(246,250,220,255))
+    for x,y in ((16,4),(13,7),(19,7),(11,9),(21,9)): p(2,x,y,(166,211,92,255))
+    for x,y in ((16,6),(13,9),(19,9)): p(2,x,y,dark)
+    for x in range(14,19): p(2,x,21,(224,196,125,255))
+
+    return bmp(width, height, bytes(pixels))
+
+
+
+def eevee() -> bytes:
+    """Original 32x32 in-game sprite for John's mysterious Eevee companion."""
+    width = height = 32
+    pixels = bytearray(width * height * 4)
+
+    def p(x, y, color):
+        if 0 <= x < width and 0 <= y < height:
             offset = (y * width + x) * 4
             pixels[offset:offset + 4] = bytes(color)
+
+    def blob(cx, cy, rx, ry, color):
+        for y in range(cy - ry, cy + ry + 1):
+            for x in range(cx - rx, cx + rx + 1):
+                if ((x-cx)*(x-cx)*ry*ry + (y-cy)*(y-cy)*rx*rx) <= rx*rx*ry*ry:
+                    p(x,y,color)
+
+    outline=(67,45,34,255); brown=(174,112,62,255); light=(226,177,105,255)
+    cream=(244,224,174,255); dark=(31,28,31,255); shine=(244,248,235,255)
+    blob(16,18,8,8,outline); blob(16,17,7,7,brown)
+    blob(16,11,6,6,outline); blob(16,11,5,5,light)
+    for x,y in ((11,5),(10,3),(9,1),(21,5),(22,3),(23,1)):
+        blob(x,y,1,3,outline)
+    blob(16,19,6,3,cream)
+    blob(25,19,5,4,outline); blob(26,18,4,3,light); blob(29,16,2,2,cream)
+    for x in range(11,14): p(x,26,outline)
+    for x in range(19,22): p(x,26,outline)
+    # Eevee's unmistakable blue eyes are an early visual clue that he is unusual.
+    eye_blue=(64,160,224,255)
+    p(13,10,eye_blue); p(19,10,eye_blue); p(13,9,shine); p(19,9,shine)
+    p(16,13,dark)
+    # A strange white diamond-like fur marking hints at his hidden heavenly purpose.
+    for x,y in ((16,15),(15,16),(16,16),(17,16),(16,17)):
+        p(x,y,shine)
+    # Extra definition keeps the special companion readable at native GBA scale:
+    # deeper ear interiors, luminous eye rims, layered ruff and a brighter marking.
+    ear_inner=(116,67,52,255); sky=(111,205,245,255); soft_cream=(252,238,201,255)
+    for x,y in ((10,4),(9,2),(22,4),(23,2)): p(x,y,ear_inner)
+    p(12,10,sky); p(20,10,sky)
+    p(13,11,(38,93,151,255)); p(19,11,(38,93,151,255))
+    for x,y in ((12,18),(13,17),(14,19),(18,19),(19,17),(20,18)):
+        p(x,y,soft_cream)
+    p(16,15,(255,255,255,255)); p(16,16,(255,255,255,255))
+    # Subtle tail bands make his silhouette less flat without revealing the mystery.
+    p(25,17,cream); p(27,17,cream); p(28,16,shine)
+    return bmp(width, height, bytes(pixels))
+
+def ui_panel() -> bytes:
+    """Ornate Crown & Chaos dialogue/menu panel with a classic GBA RPG feel."""
+    width = height = 64
+    pixels = bytearray(width * height * 4)
+    gold = (226, 194, 112, 255)
+    light_gold = (250, 232, 166, 255)
+    navy = (20, 35, 58, 255)
+    inner = (31, 52, 76, 255)
+    shadow = (9, 17, 31, 255)
+    for y in range(height):
+        for x in range(width):
+            edge = min(x, y, width - 1 - x, height - 1 - y)
+            if edge == 0:
+                color = shadow
+            elif edge == 1:
+                color = gold
+            elif edge == 2:
+                color = light_gold
+            elif edge == 3:
+                color = navy
+            else:
+                color = inner if ((x // 8 + y // 8) & 1) else navy
+            offset = (y * width + x) * 4
+            pixels[offset:offset + 4] = bytes(color)
+    # Small crown-like corner ornaments make joined panels feel bespoke.
+    for ox, oy in ((5, 5), (58, 5), (5, 58), (58, 58)):
+        for dx, dy in ((0, 0), (-2, 1), (2, 1), (0, 2)):
+            x, y = ox + dx, oy + dy
+            offset = (y * width + x) * 4
+            pixels[offset:offset + 4] = bytes(light_gold)
     return bmp(width, height, bytes(pixels))
 
 
@@ -181,8 +354,13 @@ def map_bmp(map_data: dict) -> bytes:
                     color = (190,151,101,255) if (tx + ty) % 2 else (201,164,112,255)
                 if any(rect_contains(r,tx,ty) for r in map_data["furniture"]):
                     color = (104,61,39,255)
-                if map_data["id"] == "bedroom" and 13 <= tx < 20 and 16 <= ty < 21:
-                    color = (122,47,55,255)  # rug
+                if map_data["id"] == "bedroom":
+                    # Warm timber floor with a bordered royal rug for John's room.
+                    if ((px // 16) + (py // 8)) % 2:
+                        color = tuple(max(0, channel - 8) for channel in color[:3]) + (255,)
+                    if 13 <= tx < 20 and 16 <= ty < 21:
+                        border = tx in (13,19) or ty in (16,20)
+                        color = (218,174,72,255) if border else (116,42,55,255)
             else:
                 color = (62,137,64,255)
                 if any(rect_contains(r,tx,ty) for r in map_data.get("paths",[])):
@@ -194,40 +372,156 @@ def map_bmp(map_data: dict) -> bytes:
             put(pixels,px,py,color)
     # Detailed tile-scale furniture, buildings, trees, flowers, fences and signs.
     if indoor:
-        # windows and door lintels
+        # Framed blue window with highlight, curtains and a stronger doorway.
+        for x in range(108,148):
+            for y in range(44,59): put(pixels,x,y,(69,45,35,255))
         for x in range(112,144):
-            for y in range(48,56): put(pixels,x,y,(87,151,190,255))
+            for y in range(47,56):
+                put(pixels,x,y,(105,177,207,255) if y < 51 else (71,137,181,255))
+        for x in range(126,130):
+            for y in range(47,56): put(pixels,x,y,(225,207,157,255))
+        if map_data["id"] == "bedroom":
+            for x in list(range(104,110)) + list(range(146,152)):
+                for y in range(43,64): put(pixels,x,y,(112,45,55,255))
+            # Gold curtain ties and rug centre emblem.
+            for x,y in ((107,55),(149,55)):
+                for yy in range(y-1,y+2):
+                    for xx in range(x-1,x+2): put(pixels,xx,yy,(225,181,72,255))
+            for y in range(143,151):
+                for x in range(128,136):
+                    if abs(x-132)+abs(y-147) < 5: put(pixels,x,y,(225,181,72,255))
+        for x in range(120,144):
+            for y in range(214,224): put(pixels,x,y,(58,36,29,255))
         for x in range(124,140):
-            for y in range(216,224): put(pixels,x,y,(72,43,31,255))
+            for y in range(216,224): put(pixels,x,y,(102,62,39,255))
+        if map_data["id"] == "house":
+            # Downstairs home details: hearth, kitchen counter, shelves and a runner rug.
+            for y in range(72,104):
+                for x in range(52,84): put(pixels,x,y,(91,57,43,255))
+            for y in range(78,98):
+                for x in range(58,78): put(pixels,x,y,(42,39,38,255))
+            for y in range(86,98):
+                for x in range(63,73):
+                    if (x+y)%3: put(pixels,x,y,(196,76,38,255))
+            for y in range(68,76):
+                for x in range(168,216): put(pixels,x,y,(139,94,57,255))
+            for y in range(76,82):
+                for x in range(168,216): put(pixels,x,y,(218,190,133,255))
+            for sx in (174,190,206):
+                for y in range(82,101):
+                    for x in range(sx,sx+3): put(pixels,x,y,(91,57,43,255))
+            for y in range(146,174):
+                for x in range(112,152):
+                    border = x < 115 or x >= 149 or y < 149 or y >= 171
+                    put(pixels,x,y,(214,170,68,255) if border else (76,78,111,255))
     else:
         for r in map_data.get("blocked",[]):
             for tx in range(r[0],r[2]):
                 for ty in range(r[1],r[3]):
                     if (tx+ty)%3 == 0:
                         cx,cy=tx*8+4,ty*8+4
-                        for yy in range(-4,4):
-                            for xx in range(-4,4):
-                                if xx*xx+yy*yy < 16: put(pixels,cx+xx,cy+yy,(24,82,38,255))
+                        # Layered tree canopy: shadow, mid green and sunlit crown.
+                        for yy in range(-5,5):
+                            for xx in range(-5,5):
+                                d=xx*xx+yy*yy
+                                if d < 23: put(pixels,cx+xx,cy+yy,(20,70,35,255))
+                                if d < 15 and yy < 3: put(pixels,cx+xx,cy+yy,(34,104,48,255))
+                                if d < 7 and yy < 0: put(pixels,cx+xx,cy+yy,(62,137,61,255))
+                        for yy in range(2,6):
+                            for xx in range(-1,2): put(pixels,cx+xx,cy+yy,(91,62,39,255))
+        # Small grass tufts and occasional flowers break up large flat green fields.
+        for ty in range(2,30,3):
+            for tx in range(2,30,4):
+                if walkable(map_data,tx,ty) and not any(rect_contains(r,tx,ty) for r in map_data.get("paths",[])):
+                    gx,gy=tx*8+3,ty*8+4
+                    put(pixels,gx,gy,(39,111,49,255))
+                    put(pixels,gx+2,gy-2,(77,158,70,255))
+                    put(pixels,gx+3,gy,(39,111,49,255))
+                    if (tx+ty)%5 == 0:
+                        put(pixels,gx+1,gy-3,(238,215,115,255))
         if map_data["id"] == "crownhaven":
+            # Give Crownhaven a richer village identity: stone path edging, lampposts,
+            # flower beds and varied civic/home architecture.
+            for r in map_data.get("paths", []):
+                for tx in range(r[0], r[2]):
+                    for edge_ty in (r[1], r[3] - 1):
+                        if 0 <= edge_ty < 32 and (tx + edge_ty) % 2 == 0:
+                            for xx in range(tx*8, tx*8+8):
+                                put(pixels,xx,edge_ty*8,(128,108,76,255))
+            for lx,ly in ((10,14),(20,14),(10,23),(22,23)):
+                for y in range(ly*8-9,ly*8+5):
+                    for x in range(lx*8-1,lx*8+2): put(pixels,x,y,(65,55,47,255))
+                for y in range(ly*8-12,ly*8-7):
+                    for x in range(lx*8-4,lx*8+5):
+                        if abs(x-lx*8)+abs(y-(ly*8-9)) < 7: put(pixels,x,y,(239,199,91,255))
+            for fx,fy in ((8,20),(9,20),(24,18),(25,18),(18,25),(19,25)):
+                for yy in range(2,7):
+                    for xx in range(1,7):
+                        put(pixels,fx*8+xx,fy*8+yy,(52,116,55,255))
+                put(pixels,fx*8+4,fy*8+3,(235,104 if fx%2 else 181,111,255))
             for building_index, r in enumerate(map_data["blocked"]):
                 for y in range(r[1]*8, r[3]*8):
                     for x in range(r[0]*8, r[2]*8):
                         roof_end = r[1]*8 + 18
-                        color = (104,48,43,255) if y < roof_end else (205,185,139,255)
-                        if building_index == 3:
-                            color = (70,67,92,255) if y < roof_end else (174,170,157,255)
+                        roof_palette = ((126,55,48,255),(112,70,45,255),(74,76,104,255),(70,67,92,255))
+                        wall_palette = ((220,199,151,255),(205,185,139,255),(194,181,151,255),(174,170,157,255))
+                        if y < roof_end:
+                            color = roof_palette[building_index % len(roof_palette)]
+                            # Rows of roof tiles with a darker eave.
+                            if (y-r[1]*8) % 5 == 0:
+                                color = tuple(max(0,v-18) for v in color[:3]) + (255,)
+                            if y >= roof_end-3:
+                                color = tuple(max(0,v-28) for v in color[:3]) + (255,)
+                        else:
+                            color = wall_palette[building_index % len(wall_palette)]
+                            # Sparse stone/timber accents stop walls looking flat.
+                            if (x//8 + y//8 + building_index) % 7 == 0:
+                                color = tuple(max(0,v-10) for v in color[:3]) + (255,)
                         put(pixels,x,y,color)
                 center=(r[0]+r[2])*4
                 for y in range(r[3]*8-14,r[3]*8):
                     for x in range(center-4,center+4): put(pixels,x,y,(75,45,31,255))
                 for x in (r[0]*8+10,r[2]*8-14):
+                    # Framed glass windows with bright upper panes.
+                    for y in range(r[3]*8-25,r[3]*8-16):
+                        for xx in range(x-1,x+6): put(pixels,xx,y,(75,55,40,255))
                     for y in range(r[3]*8-24,r[3]*8-17):
-                        for xx in range(x,x+5): put(pixels,xx,y,(77,137,176,255))
+                        for xx in range(x,x+5):
+                            put(pixels,xx,y,(112,178,202,255) if y < r[3]*8-21 else (67,128,169,255))
+                    for y in range(r[3]*8-24,r[3]*8-17):
+                        put(pixels,x+2,y,(224,205,151,255))
+                # Door lintel and tiny brass/gold handle.
+                for x in range(center-6,center+6):
+                    put(pixels,x,r[3]*8-15,(57,42,32,255))
+                put(pixels,center+2,r[3]*8-7,(224,178,70,255))
         elif map_data["id"] == "old_road":
-            for tx,ty in ((14,12),(16,23),(24,9)):
+            # Old Road is rougher and more overgrown than Crownhaven.
+            for r in map_data.get("paths", []):
+                for ty in range(r[1], r[3]):
+                    for tx in range(r[0], r[2]):
+                        if (tx + ty) % 4 == 0:
+                            px0,py0=tx*8+2,ty*8+3
+                            for yy in range(2):
+                                for xx in range(3): put(pixels,px0+xx,py0+yy,(143,113,72,255))
+            # Mossy roadside stones.
+            for tx,ty in ((14,12),(16,23),(24,9),(20,18),(27,15)):
                 for yy in range(8):
                     for xx in range(10):
-                        if (xx-5)**2 + (yy-5)**2 < 24: put(pixels,tx*8+xx,ty*8+yy,(104,105,99,255))
+                        d=(xx-5)**2 + (yy-5)**2
+                        if d < 24:
+                            color=(104,105,99,255) if yy > 2 else (137,139,125,255)
+                            put(pixels,tx*8+xx,ty*8+yy,color)
+                for xx in range(3,7): put(pixels,tx*8+xx,ty*8+2,(67,119,57,255))
+            # Tall grass pockets frame the first battle and Eevee stretch.
+            for tx,ty in ((12,17),(13,17),(14,17),(18,20),(19,20),(20,20),(22,13),(23,13),(24,13)):
+                for blade in range(1,7,2):
+                    put(pixels,tx*8+blade,ty*8+6,(31,91,42,255))
+                    put(pixels,tx*8+blade+1,ty*8+4,(73,145,64,255))
+            # A weathered marker hints that this road predates the village.
+            for y in range(112,132):
+                for x in range(174,182): put(pixels,x,y,(101,94,78,255))
+            for y in range(114,119):
+                for x in range(176,180): put(pixels,x,y,(185,170,126,255))
         for tx,ty in ((6,18),(16,18),(23,16),(28,20)):
             for yy in range(2,6):
                 for xx in range(2,6): put(pixels,tx*8+xx,ty*8+yy,(235,205 if tx%2 else 90,90,255))
@@ -305,6 +599,8 @@ def main() -> int:
     args = parser.parse_args()
     valid = update(ROOT / "graphics/letters.bmp", letters(), args.check)
     valid &= update(ROOT / "graphics/markers.bmp", markers(), args.check)
+    valid &= update(ROOT / "graphics/starters.bmp", starters(), args.check)
+    valid &= update(ROOT / "graphics/eevee.bmp", eevee(), args.check)
     valid &= update(ROOT / "graphics/ui_panel.bmp", ui_panel(), args.check)
     maps = json.loads((ROOT / "data/maps.json").read_text())["maps"]
     dialogue = json.loads((ROOT / "data/dialogue.json").read_text())

@@ -119,6 +119,7 @@ jobs:
           find build -maxdepth 2 -type f \( -name 'bn_*_items_*.h' -o -name '*.o' \) -print | sort
           test -f build/bn_sprite_items_letters.h
           test -f build/bn_sprite_items_markers.h
+          test -f build/bn_sprite_items_starters.h
           test -f build/bn_sprite_items_ui_panel.h
           test -f build/bn_regular_bg_items_bedroom.h
           test -f build/bn_regular_bg_items_crownhaven.h

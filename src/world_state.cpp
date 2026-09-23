@@ -6,6 +6,8 @@
 #include "bn_regular_bg_items_crownhaven.h"
 #include "bn_regular_bg_items_old_road.h"
 #include "bn_sprite_items_markers.h"
+#include "bn_sprite_items_starters.h"
+#include "bn_sprite_items_eevee.h"
 #include "bn_sprite_items_ui_panel.h"
 #include "generated/world_data.h"
 #include "npc.h"
@@ -18,7 +20,8 @@ namespace
     {
         { 2, 16, 15, 12, 0, false }, { 2, 21, 19, 13, 1, false },
         { 2, 8, 20, 14, 2, false }, { 2, 27, 18, 15, 3, false },
-        { 3, 26, 18, 15, 4, true }
+        { 3, 26, 18, 15, 4, true },
+        { 2, 14, 18, 16, 5, false }
     };
 
     [[nodiscard]] int tile_at(int pixel) { return (pixel + map_half_size) / 8; }
@@ -43,6 +46,8 @@ namespace
         case 1: lines = crown::generated::villager_2_dialogue[page]; count = crown::generated::villager_2_page_count; break;
         case 2: lines = crown::generated::villager_3_dialogue[page]; count = crown::generated::villager_3_page_count; break;
         case 3: lines = crown::generated::candy_dialogue[page]; count = crown::generated::candy_page_count; break;
+        case 5: lines = crown::generated::jexi_before_candy_dialogue[page]; count = crown::generated::jexi_before_candy_page_count; break;
+        case 6: lines = crown::generated::jexi_after_candy_dialogue[page]; count = crown::generated::jexi_after_candy_page_count; break;
         default: lines = crown::generated::finale_dialogue[page]; count = crown::generated::finale_page_count; break;
         }
     }
@@ -54,12 +59,13 @@ namespace crown
         _save_service(save_service), _audio_service(audio_service), _camera(bn::camera_ptr::create(0, 0)),
         _background(create_background(0)), _player(bn::sprite_items::markers.create_sprite(0, 0, 0))
     {
-        const SaveData& save = save_service.data();
-        _candy_spoken_to = save.candy_spoken_to;
-        _finale_seen = save.finale_seen;
-        _facing = static_cast<Direction>(save.facing < 4 ? save.facing : 0);
-        const std::uint8_t map = save.map_id < generated::map_count ? save.map_id : 0;
-        load_map(map, save.player_x, save.player_y);
+        // Build 2 changes the progression flow substantially. Start every boot at
+        // the bedroom checkpoint for now so stale emulator SRAM cannot drop a test
+        // build directly into Old Road/battle content.
+        _candy_spoken_to = false;
+        _finale_seen = false;
+        _facing = Direction::down;
+        load_map(0, -4, 20);
     }
 
     void WorldState::update(const Input& input)
@@ -71,13 +77,51 @@ namespace crown
             if(_shake_frames == 0) show_dialogue_page();
             return;
         }
-        if(_ui_mode != UiMode::none)
+        if(_ui_mode == UiMode::battle && !_battle_result && (input.left_held || input.right_held || input.up_held || input.down_held))
         {
-            if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
-            else if(input.action_pressed) advance_dialogue();
+            if(input.left_held && (_battle_move & 1)) --_battle_move;
+            else if(input.right_held && !(_battle_move & 1)) ++_battle_move;
+            else if(input.up_held && _battle_move >= 2) _battle_move -= 2;
+            else if(input.down_held && _battle_move < 2) _battle_move += 2;
+            show_battle();
             return;
         }
-        if(input.start_pressed) { open_start_menu(); return; }
+        if(_ui_mode != UiMode::none)
+        {
+            if(input.cancel_pressed && _ui_mode == UiMode::battle && _eevee_met)
+            {
+                _battle_eevee = !_battle_eevee;
+                _battle_move = 0;
+                show_battle();
+                return;
+            }
+            if(input.cancel_pressed && _ui_mode == UiMode::start_menu) close_ui();
+            else if(input.action_pressed)
+            {
+                if(_ui_mode == UiMode::starter_scene) close_ui();
+                else if(_ui_mode == UiMode::party) close_ui();
+                else if(_ui_mode == UiMode::battle)
+                {
+                    if(_battle_result)
+                    {
+                        close_ui();
+                        persist();
+                    }
+                    else
+                    {
+                        choose_battle_move(input);
+                    }
+                }
+                else advance_dialogue();
+            }
+            return;
+        }
+        if(input.start_pressed)
+        {
+            if(_candy_spoken_to) show_party();
+            else open_start_menu();
+            return;
+        }
         if(input.action_pressed) { try_interaction(); return; }
         update_movement(input);
         check_transition();
@@ -142,6 +186,7 @@ namespace crown
 
     void WorldState::begin_dialogue(std::uint8_t id)
     {
+        if(id == 5 && _candy_spoken_to) id = 6;
         _dialogue_id=id; _dialogue_page=0; _ui_mode=UiMode::dialogue; _audio_service.play_interaction(); show_dialogue_page();
     }
 
@@ -156,7 +201,14 @@ namespace crown
         }
         else
         {
-            if(_dialogue_id==3) { _candy_spoken_to=true; spawn_npcs(); }
+            if(_dialogue_id==3)
+            {
+                _candy_spoken_to=true;
+                spawn_npcs();
+                persist();
+                show_starter_scene();
+                return;
+            }
             if(_dialogue_id==4) _finale_seen=true;
             close_ui(); persist();
         }
@@ -170,6 +222,106 @@ namespace crown
         for(int line=0;line<3;++line) render_text(lines[line],0,30+line*15,_ui_sprites);
     }
 
+    void WorldState::show_starter_scene()
+    {
+        _ui_mode=UiMode::starter_scene;
+        _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-48,-28,0));
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(48,-28,1));
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        render_text("TIDELING JOINS JOHN",0,32,_ui_sprites);
+        render_text("EMBEROO JOINS CANDY",0,47,_ui_sprites);
+        render_text("PRESS A",0,62,_ui_sprites);
+    }
+
+    void WorldState::show_party()
+    {
+        _ui_mode=UiMode::party; _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-64,-12,0));
+        if(_eevee_met) _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(64,-12));
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        render_text("JOHNS PARTY",0,18,_ui_sprites);
+        render_text(_tideling_level > 5 ? "TIDELING LV 6 HP 20" : "TIDELING LV 5 HP 20",0,34,_ui_sprites);
+        if(_eevee_met)
+        {
+            render_text(_eevee_level > 5 ? "EEVEE LV 6 HP 20" : "EEVEE LV 5 HP 20",0,50,_ui_sprites);
+            render_text("MYSTERIOUS MARK",0,66,_ui_sprites);
+        }
+        else
+        {
+            render_text(_tideling_exp > 0 ? "EXP GROWING" : "HP 20 20",0,50,_ui_sprites);
+        }
+    }
+
+    void WorldState::start_first_battle()
+    {
+        _tideling_hp=20; _eevee_hp=20; _wild_hp=16; _battle_turn=0; _battle_move=0; _battle_result=false; _battle_victory=false; _battle_eevee=false; _ui_mode=UiMode::battle; show_battle();
+    }
+
+    void WorldState::show_battle()
+    {
+        _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+        if(_battle_eevee) _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(-62,4));
+        else _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(-62,4,0));
+        _creature_sprites.push_back(bn::sprite_items::starters.create_sprite(62,-34,2));
+        // A full-width command deck anchors the creatures and leaves the upper
+        // battlefield readable, closer to a polished handheld RPG composition.
+        for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+        if(_battle_result)
+        {
+            render_text(_battle_victory ? "BATTLE WON" : "BATTLE LOST",0,18,_ui_sprites);
+            render_text(_battle_victory ? "EXP EARNED 12" : "PARTY RESTORED",0,34,_ui_sprites);
+            render_text("PRESS A",0,52,_ui_sprites);
+            return;
+        }
+        // Keep battle text deliberately compact: the GBA has only 128 OBJ entries
+        // and each glyph currently consumes one sprite.
+        constexpr const char* tideling_moves[]={"TIDE TACKLE","BUBBLE BURST","BRACE","LITTLE ROAR"};
+        constexpr const char* eevee_moves[]={"STAR DASH","GUIDING LIGHT","QUICK STEP","WATCHFUL EYES"};
+        render_text(_battle_eevee ? "EEVEE LV 5" : "TIDELING LV 5",-66,18,_ui_sprites);
+        render_text(_wild_hp <= 5 ? "THORNLET HP LOW" : "THORNLET LV 4",64,-4,_ui_sprites);
+        render_text(_battle_eevee ? "HP 20" : (_tideling_hp <= 5 ? "HP LOW" : "HP 20"),-68,32,_ui_sprites);
+        render_text(_battle_eevee ? eevee_moves[_battle_move] : tideling_moves[_battle_move],0,48,_ui_sprites);
+        render_text(_battle_move < 2 ? "LEFT RIGHT" : "UP DOWN",0,62,_ui_sprites);
+        render_text(_eevee_met ? "A USE B SWITCH" : "A USE",0,74,_ui_sprites);
+    }
+
+    void WorldState::choose_battle_move(const Input&)
+    {
+        ++_battle_turn;
+        constexpr int tideling_damage[]={4,6,0,2};
+        constexpr int eevee_damage[]={5,6,4,1};
+        _wild_hp -= _battle_eevee ? eevee_damage[_battle_move] : tideling_damage[_battle_move];
+        if(!_battle_eevee && _battle_move == 2) _tideling_hp = bn::min(20, _tideling_hp + 3);
+        if(_battle_eevee && _battle_move == 3) _eevee_hp = bn::min(20, _eevee_hp + 2);
+        if(_wild_hp <= 0)
+        {
+            if(_battle_eevee)
+            {
+                _eevee_exp += 12;
+                if(_eevee_exp >= 10) { _eevee_exp -= 10; ++_eevee_level; }
+            }
+            else
+            {
+                _tideling_exp += 12;
+                if(_tideling_exp >= 10) { _tideling_exp -= 10; ++_tideling_level; }
+            }
+            _first_battle_seen=true;
+            _battle_result=true;
+            _battle_victory=true;
+            show_battle();
+            return;
+        }
+        if(_battle_eevee) _eevee_hp -= 3; else _tideling_hp -= 3;
+        if((_battle_eevee ? _eevee_hp : _tideling_hp) <= 0)
+        {
+            _tideling_hp=20; _eevee_hp=20;
+            _battle_result=true;
+            _battle_victory=false;
+        }
+        show_battle();
+    }
+
     void WorldState::open_start_menu()
     {
         _ui_mode=UiMode::start_menu; _ui_panels.clear();
@@ -178,7 +330,7 @@ namespace crown
         render_text("JOHN",0,-20,_ui_sprites); render_text(names[_map_id],0,0,_ui_sprites);
         render_text(_candy_spoken_to ? "OLD ROAD OBJECTIVE" : "EXPLORE CROWNHAVEN",0,20,_ui_sprites); persist();
     }
-    void WorldState::close_ui() { _ui_sprites.clear(); _ui_panels.clear(); _ui_mode=UiMode::none; }
+    void WorldState::close_ui() { _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear(); _ui_mode=UiMode::none; }
 
     void WorldState::check_transition()
     {
@@ -191,6 +343,27 @@ namespace crown
 
     void WorldState::check_finale()
     {
+        if(_map_id==3 && _candy_spoken_to && !_first_battle_seen && tile_at(_player_x)>=10)
+        {
+            start_first_battle();
+            return;
+        }
+        if(_map_id==3 && _first_battle_seen && !_eevee_met && tile_at(_player_x)>=17)
+        {
+            _eevee_met=true;
+            _eevee_hp=20;
+            _eevee_exp=0;
+            _eevee_level=5;
+            _ui_mode=UiMode::party;
+            _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
+            for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
+            render_text("A STRANGE EEVEE",0,18,_ui_sprites);
+            render_text("BLUE EYES WATCH JOHN",0,32,_ui_sprites);
+            render_text("A WHITE MARK GLOWS",0,46,_ui_sprites);
+            render_text("THEN EEVEE FOLLOWS",0,60,_ui_sprites);
+            _creature_sprites.push_back(bn::sprite_items::eevee.create_sprite(0,-24));
+            return;
+        }
         if(_map_id==3 && _candy_spoken_to && !_finale_seen && tile_at(_player_x)>=23) begin_dialogue(4);
     }
 

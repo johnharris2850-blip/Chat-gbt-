@@ -1,0 +1,46 @@
+{
+  "royatle": {
+    "name": "Royatle",
+    "gender_theme": "female",
+    "type": ["Fairy"],
+    "concept": "Princess turtle with pink and yellow colouring, a golden tiara and star wand.",
+    "evolves_at": 16,
+    "evolves_to": "Princeshell",
+    "signature_moves": ["Fairy Wave", "Royal Shield", "Sparkle Stream", "Heart Heal"]
+  },
+  "princeshell": {
+    "name": "Princeshell",
+    "gender_theme": "female",
+    "type": ["Fairy"],
+    "evolves_at": 36,
+    "evolves_to": "Majestortle"
+  },
+  "majestortle": {
+    "name": "Majestortle",
+    "gender_theme": "female",
+    "type": ["Fairy"],
+    "final_evolution": true
+  },
+  "shintoise": {
+    "name": "Shintoise",
+    "gender_theme": "male",
+    "type": ["Water", "Fighting"],
+    "concept": "Ninja turtle fighter with blue colouring, mask, wraps and water martial arts.",
+    "evolves_at": 16,
+    "evolves_to": "Aquanin",
+    "signature_moves": ["Aqua Strike", "Turtle Fist", "Water Shuriken", "Guard Stance"]
+  },
+  "aquanin": {
+    "name": "Aquanin",
+    "gender_theme": "male",
+    "type": ["Water", "Fighting"],
+    "evolves_at": 36,
+    "evolves_to": "Senkortle"
+  },
+  "senkortle": {
+    "name": "Senkortle",
+    "gender_theme": "male",
+    "type": ["Water", "Fighting"],
+    "final_evolution": true
+  }
+}
