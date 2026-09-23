@@ -347,6 +347,9 @@ namespace crown
         if(_map_id==3 && _first_battle_seen && !_eevee_met && tile_at(_player_x)>=17)
         {
             _eevee_met=true;
+            _eevee_hp=20;
+            _eevee_exp=0;
+            _eevee_level=5;
             _ui_mode=UiMode::party;
             _ui_sprites.clear(); _ui_panels.clear(); _creature_sprites.clear();
             for(int i=0;i<4;++i) _ui_panels.push_back(bn::sprite_items::ui_panel.create_sprite(-96+i*64,48));
