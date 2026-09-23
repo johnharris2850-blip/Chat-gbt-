@@ -369,6 +369,25 @@ def map_bmp(map_data: dict) -> bytes:
                             for xx in range(-4,4):
                                 if xx*xx+yy*yy < 16: put(pixels,cx+xx,cy+yy,(24,82,38,255))
         if map_data["id"] == "crownhaven":
+            # Give Crownhaven a richer village identity: stone path edging, lampposts,
+            # flower beds and varied civic/home architecture.
+            for r in map_data.get("paths", []):
+                for tx in range(r[0], r[2]):
+                    for edge_ty in (r[1], r[3] - 1):
+                        if 0 <= edge_ty < 32 and (tx + edge_ty) % 2 == 0:
+                            for xx in range(tx*8, tx*8+8):
+                                put(pixels,xx,edge_ty*8,(128,108,76,255))
+            for lx,ly in ((10,14),(20,14),(10,23),(22,23)):
+                for y in range(ly*8-9,ly*8+5):
+                    for x in range(lx*8-1,lx*8+2): put(pixels,x,y,(65,55,47,255))
+                for y in range(ly*8-12,ly*8-7):
+                    for x in range(lx*8-4,lx*8+5):
+                        if abs(x-lx*8)+abs(y-(ly*8-9)) < 7: put(pixels,x,y,(239,199,91,255))
+            for fx,fy in ((8,20),(9,20),(24,18),(25,18),(18,25),(19,25)):
+                for yy in range(2,7):
+                    for xx in range(1,7):
+                        put(pixels,fx*8+xx,fy*8+yy,(52,116,55,255))
+                put(pixels,fx*8+4,fy*8+3,(235,104 if fx%2 else 181,111,255))
             for building_index, r in enumerate(map_data["blocked"]):
                 for y in range(r[1]*8, r[3]*8):
                     for x in range(r[0]*8, r[2]*8):
