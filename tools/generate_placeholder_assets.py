@@ -392,16 +392,37 @@ def map_bmp(map_data: dict) -> bytes:
                 for y in range(r[1]*8, r[3]*8):
                     for x in range(r[0]*8, r[2]*8):
                         roof_end = r[1]*8 + 18
-                        color = (104,48,43,255) if y < roof_end else (205,185,139,255)
-                        if building_index == 3:
-                            color = (70,67,92,255) if y < roof_end else (174,170,157,255)
+                        roof_palette = ((126,55,48,255),(112,70,45,255),(74,76,104,255),(70,67,92,255))
+                        wall_palette = ((220,199,151,255),(205,185,139,255),(194,181,151,255),(174,170,157,255))
+                        if y < roof_end:
+                            color = roof_palette[building_index % len(roof_palette)]
+                            # Rows of roof tiles with a darker eave.
+                            if (y-r[1]*8) % 5 == 0:
+                                color = tuple(max(0,v-18) for v in color[:3]) + (255,)
+                            if y >= roof_end-3:
+                                color = tuple(max(0,v-28) for v in color[:3]) + (255,)
+                        else:
+                            color = wall_palette[building_index % len(wall_palette)]
+                            # Sparse stone/timber accents stop walls looking flat.
+                            if (x//8 + y//8 + building_index) % 7 == 0:
+                                color = tuple(max(0,v-10) for v in color[:3]) + (255,)
                         put(pixels,x,y,color)
                 center=(r[0]+r[2])*4
                 for y in range(r[3]*8-14,r[3]*8):
                     for x in range(center-4,center+4): put(pixels,x,y,(75,45,31,255))
                 for x in (r[0]*8+10,r[2]*8-14):
+                    # Framed glass windows with bright upper panes.
+                    for y in range(r[3]*8-25,r[3]*8-16):
+                        for xx in range(x-1,x+6): put(pixels,xx,y,(75,55,40,255))
                     for y in range(r[3]*8-24,r[3]*8-17):
-                        for xx in range(x,x+5): put(pixels,xx,y,(77,137,176,255))
+                        for xx in range(x,x+5):
+                            put(pixels,xx,y,(112,178,202,255) if y < r[3]*8-21 else (67,128,169,255))
+                    for y in range(r[3]*8-24,r[3]*8-17):
+                        put(pixels,x+2,y,(224,205,151,255))
+                # Door lintel and tiny brass/gold handle.
+                for x in range(center-6,center+6):
+                    put(pixels,x,r[3]*8-15,(57,42,32,255))
+                put(pixels,center+2,r[3]*8-7,(224,178,70,255))
         elif map_data["id"] == "old_road":
             for tx,ty in ((14,12),(16,23),(24,9)):
                 for yy in range(8):
