@@ -128,11 +128,18 @@ def markers() -> bytes:
                 if step != 2: pixel(frame, x - (1 if step == 1 else 0), y, (58, 42, 38, 255))
             for x in range(9, 12):
                 if step != 1: pixel(frame, x + (1 if step == 2 else 0), y, (58, 42, 38, 255))
-        # Directional hair/profile details.
+        # Directional hair/profile details plus readable face and outfit accents.
         if direction == 1:
             for x in range(5,11): pixel(frame,x,6,(55,35,25,255))
         elif direction == 2: pixel(frame,4,6,(55,35,25,255))
         elif direction == 3: pixel(frame,11,6,(55,35,25,255))
+        if direction != 1:
+            eye_x = 6 if direction != 3 else 9
+            pixel(frame,eye_x,5,(31,38,48,255))
+        # Cream collar, gold fastener and boot highlights distinguish John at 16px.
+        pixel(frame,7,7,(232,218,176,255)); pixel(frame,8,7,(232,218,176,255))
+        pixel(frame,8,8,(218,165,62,255))
+        pixel(frame,4,13,(94,66,48,255)); pixel(frame,11,13,(94,66,48,255))
     npc_colors = [(126,57,80,255),(53,104,65,255),(102,72,128,255),(196,72,74,255),(65,108,168,255)]
     for index, clothes in enumerate(npc_colors):
         frame = 12 + index
@@ -143,13 +150,20 @@ def markers() -> bytes:
             for x in range(5,11): pixel(frame,x,y,(232,184,142,255))
         for y in range(9,14):
             for x in range(3,13): pixel(frame,x,y,clothes)
+        # Tiny face pixels and outfit accents keep villagers distinct at GBA scale.
+        pixel(frame,6,7,(39,43,48,255)); pixel(frame,9,7,(39,43,48,255))
         if index == 3:
+            # Candy: bright hair silhouette, warm red outfit and gold accessory.
             pixel(frame,3,5,hair); pixel(frame,12,5,hair); pixel(frame,2,6,hair); pixel(frame,13,6,hair)
+            pixel(frame,7,9,(244,205,91,255)); pixel(frame,8,9,(244,205,91,255))
+            pixel(frame,4,13,(106,52,58,255)); pixel(frame,11,13,(106,52,58,255))
         if index == 4:
-            # Jexi: Professor's assistant, dark hair and a light research coat.
+            # Jexi: dark hair, pale research coat, blue shirt and badge.
             for y in range(9,13):
                 pixel(frame,3,y,(225,232,236,255)); pixel(frame,12,y,(225,232,236,255))
-            pixel(frame,5,7,(70,145,205,255)); pixel(frame,10,7,(70,145,205,255))
+            pixel(frame,5,9,(70,145,205,255)); pixel(frame,10,9,(70,145,205,255))
+            pixel(frame,7,10,(225,232,236,255)); pixel(frame,8,10,(225,232,236,255))
+            pixel(frame,10,11,(229,180,63,255))
     return bmp(width, height, bytes(pixels))
 
 
