@@ -365,9 +365,25 @@ def map_bmp(map_data: dict) -> bytes:
                 for ty in range(r[1],r[3]):
                     if (tx+ty)%3 == 0:
                         cx,cy=tx*8+4,ty*8+4
-                        for yy in range(-4,4):
-                            for xx in range(-4,4):
-                                if xx*xx+yy*yy < 16: put(pixels,cx+xx,cy+yy,(24,82,38,255))
+                        # Layered tree canopy: shadow, mid green and sunlit crown.
+                        for yy in range(-5,5):
+                            for xx in range(-5,5):
+                                d=xx*xx+yy*yy
+                                if d < 23: put(pixels,cx+xx,cy+yy,(20,70,35,255))
+                                if d < 15 and yy < 3: put(pixels,cx+xx,cy+yy,(34,104,48,255))
+                                if d < 7 and yy < 0: put(pixels,cx+xx,cy+yy,(62,137,61,255))
+                        for yy in range(2,6):
+                            for xx in range(-1,2): put(pixels,cx+xx,cy+yy,(91,62,39,255))
+        # Small grass tufts and occasional flowers break up large flat green fields.
+        for ty in range(2,30,3):
+            for tx in range(2,30,4):
+                if walkable(map_data,tx,ty) and not any(rect_contains(r,tx,ty) for r in map_data.get("paths",[])):
+                    gx,gy=tx*8+3,ty*8+4
+                    put(pixels,gx,gy,(39,111,49,255))
+                    put(pixels,gx+2,gy-2,(77,158,70,255))
+                    put(pixels,gx+3,gy,(39,111,49,255))
+                    if (tx+ty)%5 == 0:
+                        put(pixels,gx+1,gy-3,(238,215,115,255))
         if map_data["id"] == "crownhaven":
             # Give Crownhaven a richer village identity: stone path edging, lampposts,
             # flower beds and varied civic/home architecture.
