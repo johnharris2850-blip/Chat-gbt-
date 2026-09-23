@@ -339,6 +339,26 @@ def map_bmp(map_data: dict) -> bytes:
             for y in range(214,224): put(pixels,x,y,(58,36,29,255))
         for x in range(124,140):
             for y in range(216,224): put(pixels,x,y,(102,62,39,255))
+        if map_data["id"] == "house":
+            # Downstairs home details: hearth, kitchen counter, shelves and a runner rug.
+            for y in range(72,104):
+                for x in range(52,84): put(pixels,x,y,(91,57,43,255))
+            for y in range(78,98):
+                for x in range(58,78): put(pixels,x,y,(42,39,38,255))
+            for y in range(86,98):
+                for x in range(63,73):
+                    if (x+y)%3: put(pixels,x,y,(196,76,38,255))
+            for y in range(68,76):
+                for x in range(168,216): put(pixels,x,y,(139,94,57,255))
+            for y in range(76,82):
+                for x in range(168,216): put(pixels,x,y,(218,190,133,255))
+            for sx in (174,190,206):
+                for y in range(82,101):
+                    for x in range(sx,sx+3): put(pixels,x,y,(91,57,43,255))
+            for y in range(146,174):
+                for x in range(112,152):
+                    border = x < 115 or x >= 149 or y < 149 or y >= 171
+                    put(pixels,x,y,(214,170,68,255) if border else (76,78,111,255))
     else:
         for r in map_data.get("blocked",[]):
             for tx in range(r[0],r[2]):
