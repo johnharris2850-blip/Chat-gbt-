@@ -152,6 +152,21 @@ def markers() -> bytes:
             for x in range(3,13): pixel(frame,x,y,clothes)
         # Tiny face pixels and outfit accents keep villagers distinct at GBA scale.
         pixel(frame,6,7,(39,43,48,255)); pixel(frame,9,7,(39,43,48,255))
+        if index == 0:
+            # Elder villager: pale hair, burgundy coat and walking-cane highlight.
+            pixel(frame,4,4,(224,220,199,255)); pixel(frame,11,4,(224,220,199,255))
+            for y in range(10,15): pixel(frame,13,y,(128,86,48,255))
+            pixel(frame,7,9,(218,176,77,255))
+        elif index == 1:
+            # Ranger/gardener: green tunic, brown belt and cap brim.
+            for x in range(4,12): pixel(frame,x,3,(47,91,54,255))
+            for x in range(5,11): pixel(frame,x,9,(116,76,45,255))
+            pixel(frame,4,11,(205,176,101,255))
+        elif index == 2:
+            # Young villager: violet clothes with a light scarf and satchel.
+            for x in range(5,11): pixel(frame,x,9,(222,205,169,255))
+            for y in range(10,14): pixel(frame,11,y,(139,92,49,255))
+            pixel(frame,10,12,(222,166,67,255))
         if index == 3:
             # Candy: bright hair silhouette, warm red outfit and gold accessory.
             pixel(frame,3,5,hair); pixel(frame,12,5,hair); pixel(frame,2,6,hair); pixel(frame,13,6,hair)
