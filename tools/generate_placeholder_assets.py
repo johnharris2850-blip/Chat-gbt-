@@ -93,15 +93,16 @@ def bmp(width: int, height: int, pixels: bytes) -> bytes:
 def letters() -> bytes:
     # Butano sprite items are stacked vertically; `height` in letters.json is
     # the height of each item, not the height of a horizontal strip.
-    # Native 8x8 glyphs avoid runtime affine scaling entirely.
-    width, height = 8, 37 * 8
+    # Butano requires 16px-high sprite items. Draw the 5x7 font at native
+    # resolution inside each 8x16 cell so no runtime affine scaling is needed.
+    width, height = 8, 37 * 16
     pixels = bytearray(width * height * 4)
     for glyph_index, glyph in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ&0123456789"):
         for row, bits in enumerate(GLYPHS[glyph]):
             for column, bit in enumerate(bits):
                 if bit == "1":
                     x = 1 + column
-                    y = glyph_index * 8 + row
+                    y = glyph_index * 16 + 4 + row
                     offset = (y * width + x) * 4
                     pixels[offset:offset + 4] = bytes((240, 248, 255, 255))
     return bmp(width, height, bytes(pixels))
