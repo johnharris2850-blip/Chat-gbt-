@@ -299,8 +299,13 @@ def map_bmp(map_data: dict) -> bytes:
                     color = (190,151,101,255) if (tx + ty) % 2 else (201,164,112,255)
                 if any(rect_contains(r,tx,ty) for r in map_data["furniture"]):
                     color = (104,61,39,255)
-                if map_data["id"] == "bedroom" and 13 <= tx < 20 and 16 <= ty < 21:
-                    color = (122,47,55,255)  # rug
+                if map_data["id"] == "bedroom":
+                    # Warm timber floor with a bordered royal rug for John's room.
+                    if ((px // 16) + (py // 8)) % 2:
+                        color = tuple(max(0, channel - 8) for channel in color[:3]) + (255,)
+                    if 13 <= tx < 20 and 16 <= ty < 21:
+                        border = tx in (13,19) or ty in (16,20)
+                        color = (218,174,72,255) if border else (116,42,55,255)
             else:
                 color = (62,137,64,255)
                 if any(rect_contains(r,tx,ty) for r in map_data.get("paths",[])):
@@ -312,11 +317,28 @@ def map_bmp(map_data: dict) -> bytes:
             put(pixels,px,py,color)
     # Detailed tile-scale furniture, buildings, trees, flowers, fences and signs.
     if indoor:
-        # windows and door lintels
+        # Framed blue window with highlight, curtains and a stronger doorway.
+        for x in range(108,148):
+            for y in range(44,59): put(pixels,x,y,(69,45,35,255))
         for x in range(112,144):
-            for y in range(48,56): put(pixels,x,y,(87,151,190,255))
+            for y in range(47,56):
+                put(pixels,x,y,(105,177,207,255) if y < 51 else (71,137,181,255))
+        for x in range(126,130):
+            for y in range(47,56): put(pixels,x,y,(225,207,157,255))
+        if map_data["id"] == "bedroom":
+            for x in list(range(104,110)) + list(range(146,152)):
+                for y in range(43,64): put(pixels,x,y,(112,45,55,255))
+            # Gold curtain ties and rug centre emblem.
+            for x,y in ((107,55),(149,55)):
+                for yy in range(y-1,y+2):
+                    for xx in range(x-1,x+2): put(pixels,xx,yy,(225,181,72,255))
+            for y in range(143,151):
+                for x in range(128,136):
+                    if abs(x-132)+abs(y-147) < 5: put(pixels,x,y,(225,181,72,255))
+        for x in range(120,144):
+            for y in range(214,224): put(pixels,x,y,(58,36,29,255))
         for x in range(124,140):
-            for y in range(216,224): put(pixels,x,y,(72,43,31,255))
+            for y in range(216,224): put(pixels,x,y,(102,62,39,255))
     else:
         for r in map_data.get("blocked",[]):
             for tx in range(r[0],r[2]):
